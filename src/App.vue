@@ -6,6 +6,22 @@
   <router-view/>
 </template>
 
+<script lang="ts" setup>
+import { IYandexMusicPlugin } from '@/plugins/yandexMusic/@types'
+import { inject } from 'vue'
+import { useStore } from 'vuex';
+
+const $store = useStore()
+const yandexMusic = inject('yandex-music') as IYandexMusicPlugin
+
+yandexMusic
+  .getClient()
+  .then((result) => {
+    // yaClient.value = result
+    $store.dispatch('setClient', result)
+  })
+</script>
+
 <style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

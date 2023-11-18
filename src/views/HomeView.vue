@@ -1,18 +1,26 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <div class="home-view">
+    TADA!
+    <!-- <pre>rotors: {{rotors}}</pre> -->
+    <pre>accountStatus: {{accountStatus}}</pre>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
+import { useStore } from 'vuex';
 
-export default defineComponent({
-  name: 'HomeView',
-  components: {
-    HelloWorld,
-  },
-});
+const $store = useStore()
+
+const client = computed(() => $store.state.client)
+const accountStatus = ref<any>(null)
+
+console.log('client:', client.value)
+
+client.value.account
+  .getAccountSettings()
+  .then(async (result) => {
+    accountStatus.value = await result
+  })
 </script>
+

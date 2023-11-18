@@ -1,11 +1,16 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Home',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { auth: true }
+  },
+  {
+    path: '/',
+    name: 'Auth',
+    component: () => import('@/views/AuthView.vue')
   },
   {
     path: '/about',
@@ -20,6 +25,28 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+})
+
+router.beforeEach((to: any, from: any) => {
+  const token = localStorage.getItem('ymToken')
+
+  if (to.meta.auth && to.name !== 'Auth') {
+    if (!token) {
+      return {
+        name: 'Auth'
+      }
+    } else {
+      return true
+    }
+  } 
+    
+  if (to.name === 'Auth' && token) {
+    return {
+      name: from.name
+    }
+  } else {
+    return true
+  }
 })
 
 export default router
