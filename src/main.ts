@@ -4,7 +4,6 @@ import router from './router'
 import store from './store'
 
 import yandexMusic from './plugins/yandexMusic'
-console.log('yandexMusic:', yandexMusic)
 
 createApp(App)
   .use(store)

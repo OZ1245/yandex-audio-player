@@ -3,22 +3,25 @@
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link>
   </nav>
-  <router-view/>
+  
+  <router-view v-if="!isLoading" />
+
+  <p v-else>Loading...</p>
 </template>
 
 <script lang="ts" setup>
-import { IYandexMusicPlugin } from '@/plugins/yandexMusic/@types'
-import { inject } from 'vue'
-import { useStore } from 'vuex';
+import { useYandexMusic } from '@/libs/yandexMusic'
+import { ref } from 'vue'
 
-const $store = useStore()
-const yandexMusic = inject('yandex-music') as IYandexMusicPlugin
+const { fetchClient } = useYandexMusic()
 
-yandexMusic
-  .getClient()
+const isLoading = ref<boolean>(true)
+
+fetchClient()
   .then((result) => {
-    // yaClient.value = result
-    $store.dispatch('setClient', result)
+    if (result) {
+      isLoading.value = false
+    }
   })
 </script>
 

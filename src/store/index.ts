@@ -1,21 +1,19 @@
-import { createStore } from 'vuex'
+import { createStore, GetterTree, MutationTree, ActionTree } from 'vuex'
+import yandexMusic from './yandexMusic'
 
 export default createStore({
-  state: {
-    client: null
+  state: <any> {
   },
-  getters: {
+  getters: <GetterTree<any, any>>{
   },
-  mutations: {
-    SET_CLIENT (state, data) {
-      state.client = data
-    }
+  mutations: <MutationTree<any>>{
   },
-  actions: {
-    setClient({ commit }, data) {
-      commit('SET_CLIENT', data)
-    }
+  actions: <ActionTree<any, any>>{
   },
   modules: {
+    yandexMusic: {
+      namespaced: true,
+      ...yandexMusic
+    }
   }
 })

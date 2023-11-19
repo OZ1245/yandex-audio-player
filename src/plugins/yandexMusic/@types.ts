@@ -1,19 +1,17 @@
-import { YandexMusicClient } from 'yandex-music-client'
 import { TokenResponse } from 'yandex-music-client/token'
-
-// Props
+import * as yaMusic from 'yandex-music-client'
 
 export type TToken = TokenResponse
-export type TYandexMusicClient = YandexMusicClient
+export type TYandexMusicClient = yaMusic.YandexMusicClient
 
 // Methods
 
 export interface IFetchClient { 
-  (token: string): Promise<YandexMusicClient>
+  (token: string): Promise<yaMusic.YandexMusicClient>
 }
 
 export interface IGetClient {
-  (): Promise<YandexMusicClient | null>
+  (): Promise<yaMusic.YandexMusicClient | null>
 }
 
 export interface IAuth {
@@ -34,8 +32,28 @@ export interface ICheckToken {
 // Plugin
 
 export interface IYandexMusicPlugin {
-  client: YandexMusicClient | null
+  client: yaMusic.YandexMusicClient | null
   auth: IAuth
   authByToken: IAuthByToken
   getClient: IGetClient
+}
+
+// State
+
+export interface IState {
+  client: yaMusic.YandexMusicClient | null
+  accountStatus: yaMusic.Status | null
+  currentTrack: yaMusic.TrackDownloadInfo | []
+}
+
+// Response
+
+export interface IResponse<T> {
+  invocationInfo:	{
+    'exec-duration-millis':	number
+    hostname:	string
+    'req-id':	string
+    'app-name':	string
+  }
+  result: T
 }

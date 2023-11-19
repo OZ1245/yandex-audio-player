@@ -1,26 +1,34 @@
 <template>
   <div class="home-view">
-    TADA!
-    <!-- <pre>rotors: {{rotors}}</pre> -->
-    <pre>accountStatus: {{accountStatus}}</pre>
+    <PlaylistPane 
+      v-if="!isLoading" 
+      :playlists="playlists"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
-import { useStore } from 'vuex';
+import { Playlist } from 'yandex-music-client'
+import { ref } from 'vue'
+import { useYandexMusic } from '@/libs/yandexMusic'
+import PlaylistPane from '@/components/PlaylistPane/PlaylistPane.vue'
 
-const $store = useStore()
+const { fetchAccountStatus, fetchPlaylists } = useYandexMusic()
 
-const client = computed(() => $store.state.client)
-const accountStatus = ref<any>(null)
+const isLoading = ref<boolean>(true)
+const playlists = ref<Playlist[]>([])
 
-console.log('client:', client.value)
-
-client.value.account
-  .getAccountSettings()
-  .then(async (result) => {
-    accountStatus.value = await result
+fetchAccountStatus()
+  .then(() => {
+    fetchPlaylists()
+      .then((result: Playlist[] | undefined): void => {
+        if (result) {
+          playlists.value = result
+          isLoading.value = false
+          
+          console.log('playlists:', playlists)
+        }
+      })
   })
 </script>
 

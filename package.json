@@ -7,10 +7,13 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "types": "src/index.d.ts",
   "dependencies": {
+    "@types/crypto-js": "^4.2.1",
     "assert": "^2.1.0",
     "axios": "^1.2.6",
     "browserify-zlib": "^0.2.0",
+    "crypto-js": "^4.2.0",
     "https-browserify": "^1.0.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
