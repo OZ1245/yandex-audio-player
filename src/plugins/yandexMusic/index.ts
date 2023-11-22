@@ -16,13 +16,11 @@ export default {
 
     const fetchClient: IFetchClient = async (token) => {
       return new YandexMusicClient({
-        // BASE: 'https//api.music.yandex.net:443',
-        BASE: 'https://yandex-music-cors-proxy.onrender.com/https://api.music.yandex.net:443',
+        BASE: process.env.VUE_APP_PROXY_URL + '/' + process.env.VUE_APP_YANDEX_MUSIC_ENDPOINT,
         HEADERS: {
           'Authorization': `OAuth ${token}`,
           'Accept-Language': 'ru',
         },
-        // WITH_CREDENTIALS: true
       })
     }
 

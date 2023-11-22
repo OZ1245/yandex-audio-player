@@ -28,9 +28,9 @@
         >
           <!-- TODO: -->
           <!-- <pre>{{ track }}</pre> -->
-          {{ track.track.artists.map(artist => artist.name).join(', ') }}
+          {{ track.track?.artists.map(artist => artist.name).join(', ') }}
           -
-          {{ track.track.title }}
+          {{ track.track?.title }}
         </li>
       </ul>
     </div>
@@ -39,9 +39,10 @@
 
 <script lang="ts" setup>
 import { withDefaults, defineProps, ref } from 'vue'
-import { IProps, IOnSelectPlaylist, IOnClickTrack } from './@types.ts'
+import { IProps, IOnSelectPlaylist, IOnClickTrack } from './@types'
 import { Playlist } from 'yandex-music-client'
-import { useYandexMusic } from "@/libs/yandexMusic";
+import { useYandexMusic } from '@/libs/yandexMusic'
+import { usePlayer } from '@/libs/player'
 
 const $props = withDefaults(defineProps<IProps>(), {
   playlists: () => []
@@ -50,20 +51,22 @@ const $props = withDefaults(defineProps<IProps>(), {
 const { 
   fetchPlaylistById, 
   fetchDownloadInfo,
-  playTrack
 } = useYandexMusic()
+const { playTrack } = usePlayer()
 
 const selectedPlaylistKind = ref<number | null>(null)
 const playlist = ref<Playlist | null>(null)
 
 const onSelectPlaylist: IOnSelectPlaylist = () => {
-  fetchPlaylistById(selectedPlaylistKind.value)
+  if (selectedPlaylistKind.value) {
+    fetchPlaylistById(selectedPlaylistKind.value)
     .then((result: Playlist | undefined) => {
       playlist.value = result
     })
+  }
 }
 
-const onClickTrack: IOnClickTrack = (trackId) => {
+const onClickTrack: IOnClickTrack = (trackId): void => {
   fetchDownloadInfo(trackId)
     .then(() => playTrack())
 }

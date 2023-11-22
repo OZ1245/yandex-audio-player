@@ -122,57 +122,36 @@ export function useYandexMusic () {
     $store.state.yandexMusic.currentTrack || []
   ))
 
-  const playTrack = () => {
-    // FIXME: Вынести в плагин
-    if (currentTrack.value) {
-      const signSalt = 'XGRlBW9FXlekgbPrRHuSiA'
-      const audioContext = new AudioContext()
-      const audio = new Audio()
+  const buildDownloadUrl = (data: string): string => {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(data, "text/xml");
 
-      const trackUrl: string = currentTrack.value
+    const host = xmlDoc.getElementsByTagName('host')[0].childNodes[0].nodeValue
+    const path = xmlDoc.getElementsByTagName('path')[0].childNodes[0].nodeValue || ''
+    const ts = xmlDoc.getElementsByTagName('ts')[0].childNodes[0].nodeValue
+    const s = xmlDoc.getElementsByTagName('s')[0].childNodes[0].nodeValue
+    const sign = CryptoJS.MD5(encodeURIComponent(process.env.VUE_APP_SIGN_SALT + path[0] + s)).toString(CryptoJS.enc.Hex)
+
+    return `https://${host}/get-mp3/${sign}/${ts}${path}`
+  }
+
+  const fetchStream = async () => {
+    const trackUrl: string = currentTrack.value
         .find((file: TrackDownloadInfo): boolean => (
           file.bitrateInKbps === 320
         ))
         ?.downloadInfoUrl || ''
 
-      console.log('trackUrl:', trackUrl)
-      // audio.src = trackUrl
-      axios.get(trackUrl, {
-        // responseType: 'text/xml'
+    return await axios.get(trackUrl)
+      .then(async ({ data }: AxiosResponse<string>) => {
+        const url = buildDownloadUrl(data)
+
+        return await axios.get('/' + url, {
+          baseURL: process.env.VUE_APP_PROXY_URL,
+          headers: client.value?.tracks.httpRequest.config.HEADERS,
+          responseType: 'arraybuffer'
+        })
       })
-        .then(async ({ data }: AxiosResponse) => {
-          console.log('data:', data)
-
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(data, "text/xml");
-          console.log('xmlDoc:', xmlDoc)
-
-          const host = xmlDoc.getElementsByTagName('host')[0].childNodes[0].nodeValue
-          const path = xmlDoc.getElementsByTagName('path')[0].childNodes[0].nodeValue || ''
-          const ts = xmlDoc.getElementsByTagName('ts')[0].childNodes[0].nodeValue
-          const s = xmlDoc.getElementsByTagName('s')[0].childNodes[0].nodeValue
-          // const sign = MD5(encodeURIComponent(signSalt + path[0] + s)).digest('hex')
-          const sign = CryptoJS.MD5(encodeURIComponent(signSalt + path[0] + s)).toString(CryptoJS.enc.Hex)
-          const url = `/https://${host}/get-mp3/${sign}/${ts}${path}`
-          console.log('url:', url)
-
-          return await axios.get(url, {
-            // baseURL: client.value?.tracks.httpRequest.config.BASE,
-            baseURL: 'https://yandex-music-cors-proxy.onrender.com',
-            headers: client.value?.tracks.httpRequest.config.HEADERS,
-            responseType: 'blob'
-          })
-        })
-        .then(({ data }: AxiosResponse) => {
-          console.log('data:', data)
-          const url: string = URL.createObjectURL(data)
-          audio.src = url
-        })
-      
-      const source = audioContext.createMediaElementSource(audio)
-      source.connect(audioContext.destination)
-      audio.play()
-    }
   }
 
   return {
@@ -182,7 +161,8 @@ export function useYandexMusic () {
     fetchPlaylists,
     fetchPlaylistById,
     fetchDownloadInfo,
-    playTrack,
+    fetchStream,
+    // playTrack,
     accountStatus,
     currentTrack,
   }
