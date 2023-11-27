@@ -24,7 +24,7 @@
           v-for="(track, i) in playlist.tracks" 
           :key="`track-${i}`"
           class="playlist-pane__item"
-          @click="onClickTrack(track.id)"
+          @click="onClickTrack(track, i)"
         >
           <!-- TODO: -->
           <!-- <pre>{{ track }}</pre> -->
@@ -39,10 +39,16 @@
 
 <script lang="ts" setup>
 import { withDefaults, defineProps, ref } from 'vue'
-import { IProps, IOnSelectPlaylist, IOnClickTrack } from './@types'
-import { Playlist } from 'yandex-music-client'
+import { IProps, IOnSelectPlaylist } from './@types'
 import { useYandexMusic } from '@/libs/yandexMusic'
 import { usePlayer } from '@/libs/player'
+import { 
+  TrackData, 
+  YandexMusicPlaylist, 
+  TrackDownloadInfo,
+  YandexMusicTrackItem,
+  Track
+} from '@/@types'
 
 const $props = withDefaults(defineProps<IProps>(), {
   playlists: () => []
@@ -51,23 +57,48 @@ const $props = withDefaults(defineProps<IProps>(), {
 const { 
   fetchPlaylistById, 
   fetchDownloadInfo,
+  currentTrack,
+  setCurrentTrackData,
 } = useYandexMusic()
-const { playTrack } = usePlayer()
+const { preparationCurrentTrack, addToQueue, playTrack } = usePlayer()
 
 const selectedPlaylistKind = ref<number | null>(null)
-const playlist = ref<Playlist | null>(null)
+const playlist = ref<YandexMusicPlaylist | null>(null)
 
-const onSelectPlaylist: IOnSelectPlaylist = () => {
+const onSelectPlaylist = (): void => {
   if (selectedPlaylistKind.value) {
     fetchPlaylistById(selectedPlaylistKind.value)
-    .then((result: Playlist | undefined) => {
-      playlist.value = result
+    .then((result: YandexMusicPlaylist | undefined): void => {
+      if (result) {
+        playlist.value = result
+      }
     })
   }
 }
 
-const onClickTrack: IOnClickTrack = (trackId): void => {
-  fetchDownloadInfo(trackId)
-    .then(() => playTrack())
+/**
+ * Проиграть трек из плейлиста
+ * @param track 
+ * @param index 
+ */
+const onClickTrack = (track: TrackData, index: number): void => {
+  preparationCurrentTrack({
+    data: track
+  })
+    .then((buffer) => {
+      playTrack(buffer)
+
+      if (typeof index !== 'undefined') {
+        playlist.value
+          ?.tracks
+          .map((track: YandexMusicTrackItem, i: number) => {
+            if (i > index) {
+              addToQueue<Track>({
+                data: track.track,
+              })
+            }
+          }) || []
+      }
+    })
 }
 </script>

@@ -38,14 +38,6 @@ export interface IYandexMusicPlugin {
   getClient: IGetClient
 }
 
-// State
-
-export interface IState {
-  client: yaMusic.YandexMusicClient | null
-  accountStatus: yaMusic.Status | null
-  currentTrack: yaMusic.TrackDownloadInfo | []
-}
-
 // Response
 
 export interface IResponse<T> {

@@ -1,10 +1,15 @@
-import { IYandexMusicPlugin, IResponse } from '@/plugins/yandexMusic/@types'
 import { 
-  Status, 
-  Playlist, 
-  Settings, 
-  TrackDownloadInfo
-} from 'yandex-music-client'
+  IYandexMusicPlugin, 
+  IResponse,
+} from '@/plugins/yandexMusic/@types'
+import { 
+  YandexMusicSettings,
+  YandexMusicAccountStatus,
+  YandexMusicPlaylist,
+  TrackData,
+  TrackDownloadInfo,
+  Track
+} from '@/@types'
 import { computed, inject } from 'vue'
 import { useStore } from 'vuex'
 import axios, { AxiosResponse } from 'axios'
@@ -15,7 +20,9 @@ export function useYandexMusic () {
   const yandexMusic = inject('yandex-music') as IYandexMusicPlugin
 
   const client = computed(() => $store.state.yandexMusic.client || null)
-  console.log('client:', client.value)
+  const currentTrack = computed((): Track => (
+    $store.state.yandexMusic.currentTrack || null
+  )).value
   
   /**
    * Получить и сохранить клиент
@@ -34,10 +41,10 @@ export function useYandexMusic () {
    * Получить настройки пользователя
    * /account/settings
    */
-  const getAccountSettings = async (): Promise<any> => {
+  const getAccountSettings = async (): Promise<YandexMusicSettings> => {
     return await client.value?.account
       .getAccountSettings()
-      .then(({ result }: IResponse<Settings>) => {
+      .then(({ result }: IResponse<YandexMusicSettings>) => {
         return result
       })
   }
@@ -45,11 +52,10 @@ export function useYandexMusic () {
   /**
    * Получить статус аккаунта
    */
-  const fetchAccountStatus = async (): Promise<any> => {
+  const fetchAccountStatus = async (): Promise<YandexMusicAccountStatus> => {
     return await client.value?.account
       .getAccountStatus()
-      .then(({ result }: IResponse<Status>) => {
-        console.log('result:', result)
+      .then(({ result }: IResponse<YandexMusicAccountStatus>) => {
         $store.dispatch('yandexMusic/setAccountStatus', result)
 
         return result
@@ -59,69 +65,72 @@ export function useYandexMusic () {
   /**
    * Статус аккаунта
    */
-  const accountStatus = computed((): Status | null => (
+  const accountStatus = computed((): YandexMusicAccountStatus | null => (
     $store.state.yandexMusic.accountStatus || null
   ))
 
   /**
    * Получить полный список плейлистов пользователя
    */
-  const fetchPlaylists = async (): Promise<Playlist[] | undefined> => {
+  const fetchPlaylists = async (): Promise<YandexMusicPlaylist[] | undefined> => {
     if (accountStatus.value) {
       const userId = accountStatus.value.account.uid
       
       return await client.value?.playlists
         .getPlayLists(userId)
-        .then(({ result }: IResponse<Playlist[]>) => {
+        .then(({ result }: IResponse<YandexMusicPlaylist[]>) => {
           return result
         })
     }
   }
 
   /**
-   * Получить полную информацию о треке
+   * Получить подробный плейлист
    * @param kind 
    * @returns 
    */
-  const fetchPlaylistById = async (kind: number): Promise<Playlist | undefined> => {
+  const fetchPlaylistById = async (kind: number): Promise<YandexMusicPlaylist | undefined> => {
     if (accountStatus.value) {
       const userId = accountStatus.value.account.uid
 
       return await client.value?.playlists
         .getPlaylistById(userId, kind)
-        .then(({ result }: IResponse<Playlist>) => {
+        .then(({ result }: IResponse<YandexMusicPlaylist>) => {
           return result
         })
     }
   }
 
+  const setCurrentTrackData = (trackData: TrackData): void => {
+    $store.dispatch('yandexMusic/setCurrentTrackData', trackData)
+  }
+
+  const setCurrentDownloadInfo = (downloadInfo: TrackDownloadInfo[]): void => {
+    $store.dispatch('yandexMusic/setCurrentTrackDownloadInfo', downloadInfo)
+  }
+
   /**
-   * Получить файл трека
+   * Получить инфо о файле трека
    * @param trackId 
    * @returns 
    */
-  const fetchDownloadInfo = async (trackId: number): Promise<TrackDownloadInfo | undefined> => {
-    return await client.value?.tracks
+  const fetchDownloadInfo = async (trackId: number | string, current = false as boolean): Promise<TrackDownloadInfo[]> => {
+    return await client.value.tracks
       .getDownloadInfo(trackId, true)
-      .then(async ({ result }: IResponse<TrackDownloadInfo>) => {
-        const downloadInfo = await axios.get(`/tracks/${trackId}/download-info`, {
-          baseURL: client.value?.tracks.httpRequest.config.BASE,
-          headers: client.value?.tracks.httpRequest.config.HEADERS,
-          params: {
-            get_direct_links: true
-          },
-        })
-        // $store.dispatch('yandexMusic/setCurrentTrack', result)
-        $store.dispatch('yandexMusic/setCurrentTrack', downloadInfo.data.result)
+      .then(({ result }: IResponse<TrackDownloadInfo[]>): TrackDownloadInfo[] => {
+        if (current) {
+          setCurrentDownloadInfo(result)
+        }
 
         return result
       })
   }
 
-  const currentTrack = computed((): TrackDownloadInfo[] => (
-    $store.state.yandexMusic.currentTrack || []
-  ))
-
+  /**
+   * Формирование прямой ссылки на файл 
+   * @param data 
+   * @returns 
+   */
   const buildDownloadUrl = (data: string): string => {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(data, "text/xml");
@@ -135,14 +144,12 @@ export function useYandexMusic () {
     return `https://${host}/get-mp3/${sign}/${ts}${path}`
   }
 
-  const fetchStream = async () => {
-    const trackUrl: string = currentTrack.value
-        .find((file: TrackDownloadInfo): boolean => (
-          file.bitrateInKbps === 320
-        ))
-        ?.downloadInfoUrl || ''
-
-    return await axios.get(trackUrl)
+  /**
+   * Получить поток по прямой ссылке
+   * @returns 
+   */
+  const fetchStream = async (url: string) => {
+    return await axios.get(url)
       .then(async ({ data }: AxiosResponse<string>) => {
         const url = buildDownloadUrl(data)
 
@@ -162,6 +169,7 @@ export function useYandexMusic () {
     fetchPlaylistById,
     fetchDownloadInfo,
     fetchStream,
+    setCurrentTrackData,
     // playTrack,
     accountStatus,
     currentTrack,

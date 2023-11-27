@@ -25,8 +25,6 @@ fetchAccountStatus()
         if (result) {
           playlists.value = result
           isLoading.value = false
-          
-          console.log('playlists:', playlists)
         }
       })
   })
