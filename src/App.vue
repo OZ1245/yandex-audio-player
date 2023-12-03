@@ -1,9 +1,18 @@
 <template>
-  <router-view v-if="!isLoading" />
+  <div class="app">
+    <div
+      class="app__splash"
+      v-if="isLoading"
+    >
+      <p class="app__splash-message">Loading...</p>
+    </div>
 
-  <p v-else>Loading...</p>
+    <div class="app__content">
+      <router-view />
+    </div>
 
-  <navigation-pane />
+    <navigation-pane class="app__navigation" />
+  </div>
 </template>
 
 <script lang="ts" setup>

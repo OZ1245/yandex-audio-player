@@ -20,6 +20,8 @@
 </template>
 
 <script lang="ts" setup>
+import './style.scss'
+
 type RouteName = string
 type TitleAttribute = string
 type ButtonText = string
