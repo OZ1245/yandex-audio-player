@@ -5,22 +5,22 @@
 <script lang="ts" setup>
 import { Playlist } from 'yandex-music-client'
 import { ref } from 'vue'
-import { useYandexMusic } from '@/composables/yandexMusic'
+// import { useYandexMusic } from '@/composables/yandexMusic'
 import PlaylistPane from '@/components/PlaylistPane/PlaylistPane.vue'
 
-const { fetchAccountStatus, fetchPlaylists } = useYandexMusic()
+// const { fetchAccountStatus, fetchPlaylists } = useYandexMusic()
 
-const isLoading = ref<boolean>(true)
+// const isLoading = ref<boolean>(true)
 const playlists = ref<Playlist[]>([])
 
-fetchAccountStatus()
-  .then(() => {
-    fetchPlaylists()
-      .then((result: Playlist[] | undefined): void => {
-        if (result) {
-          playlists.value = result
-          isLoading.value = false
-        }
-      })
-  })
+// fetchAccountStatus()
+//   .then(() => {
+//     fetchPlaylists()
+//       .then((result: Playlist[] | undefined): void => {
+//         if (result) {
+//           playlists.value = result
+//           isLoading.value = false
+//         }
+//       })
+//   })
 </script>

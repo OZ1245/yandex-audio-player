@@ -1,4 +1,4 @@
-import { YandexMusicPlugin, Response } from "@/@types";
+import { YandexMusicPlugin, Response, YandexMusicCover } from "@/@types";
 import {
   YandexMusicSettings,
   YandexMusicAccountStatus,
@@ -73,15 +73,15 @@ export function useYandexMusic() {
   const fetchPlaylists = async (): Promise<
     YandexMusicPlaylist[] | undefined
   > => {
-    if (accountStatus.value) {
-      const userId = accountStatus.value.account.uid;
+    if (!accountStatus.value) return;
 
-      return await client.value?.playlists
-        .getPlayLists(userId)
-        .then(({ result }: Response<YandexMusicPlaylist[]>) => {
-          return result;
-        });
-    }
+    const userId = accountStatus.value.account.uid;
+
+    return await client.value?.playlists
+      .getPlayLists(userId)
+      .then(({ result }: Response<YandexMusicPlaylist[]>) => {
+        return result;
+      });
   };
 
   /**
@@ -92,15 +92,15 @@ export function useYandexMusic() {
   const fetchPlaylistById = async (
     kind: number
   ): Promise<YandexMusicPlaylist | undefined> => {
-    if (accountStatus.value) {
-      const userId = accountStatus.value.account.uid;
+    if (!accountStatus.value) return;
 
-      return await client.value?.playlists
-        .getPlaylistById(userId, kind)
-        .then(({ result }: Response<YandexMusicPlaylist>) => {
-          return result;
-        });
-    }
+    const userId = accountStatus.value.account.uid;
+
+    return await client.value?.playlists
+      .getPlaylistById(userId, kind)
+      .then(({ result }: Response<YandexMusicPlaylist>) => {
+        return result;
+      });
   };
 
   const setCurrentTrackData = (trackData: TrackData): void => {
@@ -172,16 +172,96 @@ export function useYandexMusic() {
       });
   };
 
+  const fetchResource = async (url: string): Promise<any> => {
+    return await axios
+      .get("/https://" + url, {
+        baseURL: process.env.VUE_APP_PROXY_URL,
+        headers: client.value?.tracks.httpRequest.config.HEADERS,
+        responseType: "blob",
+      })
+      .then(({ data }) => data);
+  };
+
+  const getCover = async (
+    coverData: YandexMusicCover
+  ): Promise<string | undefined> => {
+    if (!coverData) return "";
+
+    const size = "200x200";
+
+    if (coverData.type === "mosaic" && coverData.itemsUri) {
+      return await Promise.all(
+        coverData.itemsUri.map(async (item) => {
+          const uri = item.replace("%%", size);
+          return await fetchResource(uri).then((result) => result);
+        })
+      ).then(async (result): Promise<any> => {
+        const urls = result.map((item) => {
+          return URL.createObjectURL(item);
+        });
+
+        return await buildCover(urls);
+      });
+    }
+
+    // TODO: type === pic
+  };
+
+  const buildCover = async (src: string[]) => {
+    const c = document.createElement("canvas");
+    c.width = 200;
+    c.height = 200;
+    const ctx = c.getContext("2d");
+
+    const loadedImages: any[] = [];
+
+    return await Promise.all(
+      src.map(async (item, i) => {
+        return await new Promise(function (resolve: any) {
+          const img = new Image();
+          img.onload = () => {
+            loadedImages[i] = img;
+            resolve();
+          };
+          img.src = item;
+        });
+      })
+    ).then(() => {
+      loadedImages.map((item, i) => {
+        switch (i) {
+          case 0:
+            ctx?.drawImage(item, 0, 0, 100, 100);
+            break;
+          case 1:
+            ctx?.drawImage(item, 100, 0, 100, 100);
+            break;
+          case 2:
+            ctx?.drawImage(item, 0, 100, 100, 100);
+            break;
+          case 3:
+            ctx?.drawImage(item, 100, 100, 100, 100);
+            break;
+        }
+      });
+
+      const img = c.toDataURL("image/png");
+
+      return img;
+    });
+  };
+
   return {
     fetchClient,
     fetchAccountStatus,
-    getAccountSettings,
     fetchPlaylists,
     fetchPlaylistById,
     fetchDownloadInfo,
     fetchStream,
+
+    getAccountSettings,
     setCurrentTrackData,
-    // playTrack,
+    getCover,
+
     accountStatus,
     currentTrack,
   };

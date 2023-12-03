@@ -1,0 +1,20 @@
+.collection-view {
+  position: relative;
+
+  padding-inline: var(--b-padding-inline);
+  padding-block: var(--b-padding-block);
+}
+.collection-view__item {
+}
+.collection-view__heading {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--b-padding-inline) / 2);
+
+  margin-bottom: var(--b-padding-block);
+}
+.collection-view__title {
+  font-size: 2em;
+
+  margin: 0;
+}

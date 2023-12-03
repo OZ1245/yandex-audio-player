@@ -10,8 +10,15 @@ const routes: Array<RouteRecordRaw> = [
     path: "/collection",
     alias: "/",
     name: "Collection",
-    component: () => import("@/views/CollectionView.vue"),
+    component: () => import("@/views/CollectionView/CollectionView.vue"),
     meta: { auth: true },
+    children: [
+      {
+        path: "playlist/:playlistKind",
+        name: "CollectionPlaylist",
+        component: () => import("@/components/collection/PlaylistInfo.vue"),
+      },
+    ],
   },
   {
     path: "/player",

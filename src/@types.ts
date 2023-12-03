@@ -5,6 +5,7 @@ export type LoadingState = boolean;
 export type AuthToken = TokenResponse;
 export type UserName = string;
 export type UserPassword = string;
+export type CollectionState = boolean;
 
 export type TrackData = YM.Track;
 export type TrackDownloadInfo = YM.TrackDownloadInfo;
@@ -15,6 +16,7 @@ export type YandexMusicAccountStatus = YM.Status | null;
 export type YandexMusicPlaylist = YM.Playlist;
 export type YandexMusicSettings = YM.Settings;
 export type YandexMusicTrackItem = YM.TrackItem;
+export type YandexMusicCover = YM.Cover;
 
 interface GetClient {
   (): Promise<YandexMusicClient | null>;

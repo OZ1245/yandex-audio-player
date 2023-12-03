@@ -7,7 +7,10 @@
       <p class="app__splash-message">Loading...</p>
     </div>
 
-    <div class="app__content">
+    <div
+      v-if="!isLoading"
+      class="app__content"
+    >
       <router-view />
     </div>
 
@@ -21,14 +24,17 @@ import { useYandexMusic } from '@/composables/yandexMusic'
 import { ref } from 'vue'
 import NavigationPane from '@/components/NavigationPane/NavigationPane.vue'
 
-const { fetchClient } = useYandexMusic()
+const { fetchClient, fetchAccountStatus } = useYandexMusic()
 
 const isLoading = ref<LoadingState>(true)
 
 fetchClient()
   .then((result) => {
     if (result) {
-      isLoading.value = false
+      fetchAccountStatus()
+        .then(() => {
+          isLoading.value = false
+        })
     }
   })
 </script>

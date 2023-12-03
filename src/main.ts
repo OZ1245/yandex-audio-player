@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 
-import player from "./plugins/player";
+import player from "./plugins/playlist";
 import yandexMusic from "./plugins/yandexMusic";
 
 import "@/assets/scss/common.scss";
