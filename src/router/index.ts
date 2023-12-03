@@ -23,7 +23,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/player",
     name: "Player",
-    component: () => import("@/views/PlayerView.vue"),
+    component: () => import("@/views/PlayerView/PlayerView.vue"),
     meta: { auth: true },
   },
   {
