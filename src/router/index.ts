@@ -1,52 +1,57 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
-    name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
-    meta: { auth: true }
+    path: "/auth",
+    name: "Auth",
+    component: () => import("@/views/AuthView.vue"),
   },
   {
-    path: '/',
-    name: 'Auth',
-    component: () => import('@/views/AuthView.vue')
+    path: "/collection",
+    alias: "/",
+    name: "Collection",
+    component: () => import("@/views/CollectionView.vue"),
+    meta: { auth: true },
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
-]
+    path: "/player",
+    name: "Player",
+    component: () => import("@/views/PlayerView.vue"),
+    meta: { auth: true },
+  },
+  {
+    path: "/playlist",
+    name: "Playlist",
+    component: () => import("@/views/PlaylistView.vue"),
+    meta: { auth: true },
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
 router.beforeEach((to: any, from: any) => {
-  const token = localStorage.getItem('ymToken')
+  const token = localStorage.getItem("ymToken");
 
-  if (to.meta.auth && to.name !== 'Auth') {
+  if (to.meta.auth && to.name !== "Auth") {
     if (!token) {
       return {
-        name: 'Auth'
-      }
+        name: "Auth",
+      };
     } else {
-      return true
+      return true;
     }
-  } 
-    
-  if (to.name === 'Auth' && token) {
-    return {
-      name: from.name
-    }
-  } else {
-    return true
   }
-})
 
-export default router
+  if (to.name === "Auth" && token) {
+    return {
+      name: from.name,
+    };
+  } else {
+    return true;
+  }
+});
+
+export default router;

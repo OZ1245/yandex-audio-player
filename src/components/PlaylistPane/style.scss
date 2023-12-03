@@ -1,0 +1,17 @@
+.playlist-pane__list {
+  list-style: none;
+}
+
+.track {
+  display: flex;
+
+  &:hover {
+    .track__main-control {
+      display: block;
+    }
+  }
+}
+
+.track__main-control {
+  display: none;
+}

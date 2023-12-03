@@ -1,4 +1,4 @@
-import { Player } from './@types'
+import { Player } from "@/@types";
 
 export default {
   install(app: any) {
@@ -7,8 +7,8 @@ export default {
       playlist: [],
       nextTime: 0,
       // const audio = new Audio(),
-    }
-    
-    app.provide('player', player)
-  }
-}
+    };
+
+    app.provide("player", player);
+  },
+};

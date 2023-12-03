@@ -4,7 +4,7 @@ import {
   YandexMusicAccountStatus,
   TrackData,
   TrackDownloadInfo,
-  TrackBuffer 
+  TrackBuffer,
 } from '@/@types'
 import { GetterTree, MutationTree, ActionTree } from 'vuex'
 
@@ -22,7 +22,7 @@ export default {
     currentTrack: {
       data: null,
       downloadInfo: [],
-      buffer: null
+      buffer: null,
     },
     queue: []
   },
@@ -123,6 +123,6 @@ export default {
 
     removeTrackFromQueue({ commit }, index: number) {
       commit('REMOVE_TRACK_FROM_QUEUE', index)
-    }
+    },
   },
 }

@@ -1,21 +1,20 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  
   <router-view v-if="!isLoading" />
 
   <p v-else>Loading...</p>
+
+  <navigation-pane />
 </template>
 
 <script lang="ts" setup>
-import { useYandexMusic } from '@/libs/yandexMusic'
+import { LoadingState } from '@/@types'
+import { useYandexMusic } from '@/composables/yandexMusic'
 import { ref } from 'vue'
+import NavigationPane from '@/components/NavigationPane/NavigationPane.vue'
 
 const { fetchClient } = useYandexMusic()
 
-const isLoading = ref<boolean>(true)
+const isLoading = ref<LoadingState>(true)
 
 fetchClient()
   .then((result) => {
@@ -24,26 +23,3 @@ fetchClient()
     }
   })
 </script>
-
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>

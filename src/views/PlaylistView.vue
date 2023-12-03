@@ -1,16 +1,11 @@
 <template>
-  <div class="home-view">
-    <PlaylistPane 
-      v-if="!isLoading" 
-      :playlists="playlists"
-    />
-  </div>
+  <playlist-pane :playlists="playlists" />
 </template>
 
 <script lang="ts" setup>
 import { Playlist } from 'yandex-music-client'
 import { ref } from 'vue'
-import { useYandexMusic } from '@/libs/yandexMusic'
+import { useYandexMusic } from '@/composables/yandexMusic'
 import PlaylistPane from '@/components/PlaylistPane/PlaylistPane.vue'
 
 const { fetchAccountStatus, fetchPlaylists } = useYandexMusic()
@@ -29,4 +24,3 @@ fetchAccountStatus()
       })
   })
 </script>
-

@@ -1,5 +1,6 @@
 import { createStore, GetterTree, MutationTree, ActionTree } from 'vuex'
 import yandexMusic from './yandexMusic'
+import player from './player'
 
 export default createStore({
   state: <any> {
@@ -13,7 +14,11 @@ export default createStore({
   modules: {
     yandexMusic: {
       namespaced: true,
-      ...yandexMusic
-    }
+      ...yandexMusic,
+    },
+    player: {
+      namespaced: true,
+      ...player,
+    },
   }
 })
