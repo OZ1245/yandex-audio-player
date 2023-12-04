@@ -34,62 +34,10 @@
         </ul>
       </div>
 
-      <ul
+      <ymp-playlist
         v-if="playlist?.tracks?.length"
-        class="playlist-info__list"
-      >
-        <li
-          v-for="(item, i) in playlist.tracks"
-          :key="`track-item-${i}`"
-          class="playlist-info__track"
-          :class="{ 'playlist-info__track--current': currentTrack && +currentTrack.id === item.id }"
-        >
-          <template v-if="item.track">
-            <div class="playlist-info__track-heading">
-              <template v-if="currentTrack && +currentTrack.id === item.id">
-                <button
-                  v-if="playerStatus === 'stopped' || playerStatus === 'paused'"
-                  class="playlist-info__main-control"
-                  @click="onPlayTrack(item.track, i)"
-                >
-                  Play
-                </button>
-                <!-- TODO: -->
-                <button
-                  v-if="playerStatus === 'playing'"
-                  class="playlist-info__main-control"
-                >
-                  Pause
-                </button>
-              </template>
-              <button
-                v-else
-                class="playlist-info__main-control"
-                @click="onPlayTrack(item.track, i)"
-              >
-                Play
-              </button>
-
-              <p class="playlist-info__track-title">
-                {{ item.track.artists.map(artist => artist.name).join(', ') }}
-                -
-                {{ item.track.title }}
-              </p>
-            </div>
-
-            <ul class="playlist-info__track-controls">
-              <li class="playlist-info__duration">
-                {{ item.track.durationMs ? millisecondsToDisplay(item.track.durationMs) : '00:00' }}
-              </li>
-            </ul>
-          </template>
-
-          <p
-            v-else
-            class="playlist-info__track-error"
-          >Track error</p>
-        </li>
-      </ul>
+        :tracks="playlist.tracks"
+      />
     </div>
   </sub-view>
 </template>
@@ -97,7 +45,8 @@
 <script lang="ts" setup>
 import './style.scss'
 import SubView from '@/components/SubView/SubView.vue'
-import { YandexMusicPlaylist, TrackData, YandexMusicTrackItem, Track, YandexMusicCover } from '@/@types'
+import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
+import { YandexMusicPlaylist } from '@/@types'
 import { useYandexMusic } from '@/composables/yandexMusic';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -109,13 +58,6 @@ import { usePlayer } from '@/composables/player';
 const { params: routeParams } = useRoute()
 const { fetchPlaylistById, getCover } = useYandexMusic()
 const { millisecondsToDisplay } = useUtils()
-const {
-  currentTrackData: currentTrack,
-  playerStatus,
-  preparationCurrentTrack,
-  playTrack,
-  addToQueue
-} = usePlayer()
 
 // Variables
 
@@ -130,33 +72,7 @@ const title = computed((): string => `Playlist "${playlistTitle.value}"`)
 
 // Methods
 
-/**
- * Проиграть трек из плейлиста
- * @param {TrackData} track
- * @param {number} index 
- */
-const onPlayTrack = (track: TrackData, index: number): void => {
-  preparationCurrentTrack({
-    data: track
-  })
-    .then((buffer) => {
-      if (!buffer) return
-
-      playTrack(buffer)
-
-      if (typeof index === 'undefined') return
-
-      playlist.value
-        ?.tracks
-        .map((item: YandexMusicTrackItem, i: number) => {
-          if (i > index) {
-            addToQueue({
-              data: item.track,
-            } as Track)
-          }
-        }) || []
-    })
-}
+// TODO:
 
 // Hooks
 
@@ -168,6 +84,8 @@ fetchPlaylistById(playlistKind.value)
 
       if (result.cover) {
         getCover(result.cover).then(result => {
+          if (!result) return
+
           playlistCover.value = result
         })
       }

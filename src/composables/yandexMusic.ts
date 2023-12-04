@@ -84,6 +84,10 @@ export function useYandexMusic() {
       });
   };
 
+  const playlist = computed(
+    (): YandexMusicPlaylist | undefined => $store.state.yandexMusic.playlist
+  ).value;
+
   /**
    * Получить подробный плейлист
    * @param kind
@@ -99,6 +103,8 @@ export function useYandexMusic() {
     return await client.value?.playlists
       .getPlaylistById(userId, kind)
       .then(({ result }: Response<YandexMusicPlaylist>) => {
+        $store.dispatch("yandexMusic/setPlaylist", result);
+
         return result;
       });
   };
@@ -275,5 +281,6 @@ export function useYandexMusic() {
 
     accountStatus,
     currentTrack,
+    playlist,
   };
 }

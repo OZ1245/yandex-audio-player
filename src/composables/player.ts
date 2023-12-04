@@ -1,19 +1,12 @@
 import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
-import { computed, inject } from "vue";
-import {
-  PlayerStatus,
-  Track,
-  TrackData,
-  TrackDownloadInfo,
-  Player,
-} from "@/@types";
+import { computed } from "vue";
+import { PlayerStatus, Track, TrackData, TrackDownloadInfo } from "@/@types";
 import { useStore } from "vuex";
 
 export function usePlayer() {
   const $store = useStore();
   const $yandexMusic = useYandexMusic();
-  const $player = inject("player") as Player;
   let currentTimerId = 0;
   let audioBuffer: AudioBuffer | null = null;
   let nextBufferIsLoading = false;
@@ -24,16 +17,28 @@ export function usePlayer() {
   };
 
   const closeAudioContext = () => {
+    if (!audioContext) return;
+
     audioContext.close();
   };
 
+  // const clearPlayback = () => {
+
+  // }
+
   const addToQueue = (track: Track): void => {
-    $store.dispatch("yandexMusic/addTrackToQueue", track);
+    $store.dispatch("player/addTrackToQueue", track);
   };
+
+  // const clearQueue = () => {
+
+  // }
 
   const preparationCurrentTrack = async (
     track: Track
   ): Promise<AudioBuffer | undefined> => {
+    closeAudioContext();
+
     if (!track.data) return;
     createAudioContext();
 
@@ -57,8 +62,6 @@ export function usePlayer() {
   };
 
   const playTrack = (buffer: AudioBuffer): void => {
-    // if (!audioContext) return
-
     audioBuffer = buffer;
     const sourceNode = audioContext.createBufferSource();
     sourceNode.buffer = buffer;
@@ -66,29 +69,20 @@ export function usePlayer() {
     sourceNode.start(0);
     $store.dispatch("player/setStatus", "playing");
 
-    console.log("audioContext:", audioContext);
-    console.log("getOutputTimestamp():", audioContext.getOutputTimestamp());
-    console.log("audioBuffer:", audioBuffer);
-    console.log("sourceNode:", sourceNode);
-
     checkCurrentTime();
 
     sourceNode.onended = () => {
-      console.log("---sourceNode.onended---");
-
       clearTimeout(currentTimerId);
       sourceNode.stop(0);
       closeAudioContext();
       nextBufferIsLoading = false;
 
-      preparationCurrentTrack($store.state.yandexMusic.queue[0]).then(
-        (buffer) => {
-          if (!buffer) return;
+      preparationCurrentTrack($store.state.player.queue[0]).then((buffer) => {
+        if (!buffer) return;
 
-          playTrack(buffer);
-          $store.dispatch("yandexMusic/removeTrackFromQueue", 0);
-        }
-      );
+        playTrack(buffer);
+        $store.dispatch("player/removeTrackFromQueue", 0);
+      });
     };
   };
 
@@ -97,7 +91,7 @@ export function usePlayer() {
       if (audioBuffer) {
         const difference: number =
           audioBuffer.duration - audioContext.currentTime;
-        const nextTrack = $store.state.yandexMusic.queue[0];
+        const nextTrack = $store.state.player.queue[0];
 
         console.log("difference:", difference);
 
@@ -107,7 +101,7 @@ export function usePlayer() {
           $yandexMusic
             .fetchDownloadInfo(nextTrack.data.id)
             .then((downloadInfo: TrackDownloadInfo[]) => {
-              $store.dispatch("yandexMusic/setTrackDownloadInfo", {
+              $store.dispatch("player/setTrackDownloadInfo", {
                 data: downloadInfo,
                 queueIndex: 0,
               });
@@ -115,7 +109,7 @@ export function usePlayer() {
               const url = getDownloadInfoUrl(nextTrack);
 
               getBuffer(url).then((buffer: AudioBuffer) => {
-                $store.dispatch("yandexMusic/setTrackBuffer", {
+                $store.dispatch("player/setTrackBuffer", {
                   data: buffer,
                   queueIndex: 0,
                 });

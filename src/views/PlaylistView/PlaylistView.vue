@@ -1,26 +1,15 @@
 <template>
-  <playlist-pane :playlists="playlists" />
+  <ymp-playlist
+    v-if="currentTrackData"
+    :tracks="playlist.tracks"
+  />
 </template>
 
 <script lang="ts" setup>
-import { Playlist } from 'yandex-music-client'
-import { ref } from 'vue'
-// import { useYandexMusic } from '@/composables/yandexMusic'
-import PlaylistPane from '@/components/PlaylistPane/PlaylistPane.vue'
+import { useYandexMusic } from '@/composables/yandexMusic'
+import { usePlayer } from '@/composables/player'
+import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
 
-// const { fetchAccountStatus, fetchPlaylists } = useYandexMusic()
-
-// const isLoading = ref<boolean>(true)
-const playlists = ref<Playlist[]>([])
-
-// fetchAccountStatus()
-//   .then(() => {
-//     fetchPlaylists()
-//       .then((result: Playlist[] | undefined): void => {
-//         if (result) {
-//           playlists.value = result
-//           isLoading.value = false
-//         }
-//       })
-//   })
+const { playlist } = useYandexMusic()
+const { currentTrackData } = usePlayer()
 </script>

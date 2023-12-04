@@ -1,0 +1,60 @@
+.ymp-playlist {
+  flex-grow: 1;
+  overflow: auto;
+
+  margin: 0;
+  padding: 0;
+}
+.ymp-playlist__track--current {
+  .ymp-playlist__main-control {
+    visibility: visible;
+  }
+  .ymp-playlist__track-title {
+    color: var(--c-text-accent);
+  }
+}
+.ymp-playlist__track:hover {
+  .ymp-playlist__main-control {
+    visibility: visible;
+  }
+}
+.ymp-playlist__main-control {
+  visibility: hidden;
+}
+.ymp-playlist__track {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-block: var(--b-padding-block);
+  padding-inline: calc(var(--b-padding-inline) / 2);
+
+  border: 1px solid var(--c-background);
+}
+.ymp-playlist__track:hover {
+  cursor: pointer;
+  border-color: var(--c-border);
+}
+.ymp-playlist__track-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--b-padding-inline) / 2);
+}
+.ymp-playlist__track-title {
+  font-size: 1.2em;
+
+  margin: 0;
+}
+.ymp-playlist__track-controls {
+  display: inline-flex;
+  gap: calc(var(--b-padding-inline) / 2);
+
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ymp-playlist__duration {
+  font-size: 1em;
+  color: var(--c-text-subtext);
+}
