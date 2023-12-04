@@ -14,6 +14,12 @@
   aspect-ratio: 1/1;
 
   border: 1px solid var(--c-border);
+
+  img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .player-view__track {

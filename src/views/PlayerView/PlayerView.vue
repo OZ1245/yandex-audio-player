@@ -3,14 +3,15 @@
   <div class="player-view">
     <div class="player-view__cover">
       <img
-        src=""
-        alt=""
+        v-if="coverSrc"
+        :src="coverSrc"
+        :alt="trackName"
       >
     </div>
 
     <div class="player-view__track">
       <p class="player-view__track-name">
-        {{ 'Track:Name' }}
+        {{ trackName }}
       </p>
     </div>
 
@@ -50,9 +51,49 @@
 </template>
 
 <script lang="ts" setup>
-import { usePlayer } from '@/composables/player';
 import './style.scss'
+import { watch, ref, computed } from 'vue';
+import { usePlayer } from '@/composables/player';
+import { useYandexMusic } from '@/composables/yandexMusic';
 // import PlayerPane from '@/components/PlayerPane/PlayerPane.vue'
 
-const { playerStatus } = usePlayer()
+const { playerStatus, currentTrackData } = usePlayer()
+const { getCover } = useYandexMusic()
+
+console.log('currentTrackData:', currentTrackData.value)
+
+const coverSrc = ref<string>('')
+
+const trackName = computed((): string => {
+  if (currentTrackData.value) {
+    return `
+      ${currentTrackData.value.artists.map(artist => artist.name).join(', ')}
+      -
+      ${currentTrackData.value.title}`
+  }
+
+  return '-'
+})
+
+const fetchCover = () => {
+  if (currentTrackData.value?.coverUri) {
+    getCover(currentTrackData.value?.coverUri, true)
+      .then((result) => {
+        if (result) {
+          coverSrc.value = result
+        }
+      })
+  }
+}
+
+fetchCover()
+
+watch(
+  () => currentTrackData.value,
+  (val, oldVal) => {
+    if ((val?.id !== oldVal?.id)) {
+      fetchCover()
+    }
+  }
+)
 </script>

@@ -172,7 +172,7 @@ export function useYandexMusic() {
       });
   };
 
-  const fetchResource = async (url: string): Promise<any> => {
+  const fetchResource = async (url: string): Promise<Blob> => {
     return await axios
       .get("/https://" + url, {
         baseURL: process.env.VUE_APP_PROXY_URL,
@@ -183,17 +183,23 @@ export function useYandexMusic() {
   };
 
   const getCover = async (
-    coverData: YandexMusicCover
+    coverData: YandexMusicCover | string,
+    big?: boolean
   ): Promise<string | undefined> => {
-    if (!coverData) return "";
+    if (!coverData) return;
 
-    const size = "200x200";
+    const size = big ? "600x600" : "200x200";
+
+    if (typeof coverData === "string") {
+      return await fetchCover(coverData, size).then((result) => {
+        return URL.createObjectURL(result);
+      });
+    }
 
     if (coverData.type === "mosaic" && coverData.itemsUri) {
       return await Promise.all(
         coverData.itemsUri.map(async (item) => {
-          const uri = item.replace("%%", size);
-          return await fetchResource(uri).then((result) => result);
+          return await fetchCover(item, size).then((result) => result);
         })
       ).then(async (result): Promise<any> => {
         const urls = result.map((item) => {
@@ -205,6 +211,11 @@ export function useYandexMusic() {
     }
 
     // TODO: type === pic
+  };
+
+  const fetchCover = async (url: string, size: string): Promise<Blob> => {
+    const uri = url.replace("%%", size);
+    return await fetchResource(uri).then((result) => result);
   };
 
   const buildCover = async (src: string[]) => {
