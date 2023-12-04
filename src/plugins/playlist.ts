@@ -9,6 +9,8 @@ export default {
       // const audio = new Audio(),
     };
 
+    console.log("player plugin:", player);
+
     app.provide("player", player);
   },
 };

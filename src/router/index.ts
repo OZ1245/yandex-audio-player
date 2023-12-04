@@ -29,7 +29,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/playlist",
     name: "Playlist",
-    component: () => import("@/views/PlaylistView.vue"),
+    component: () => import("@/views/PlaylistView/PlaylistView.vue"),
     meta: { auth: true },
   },
 ];

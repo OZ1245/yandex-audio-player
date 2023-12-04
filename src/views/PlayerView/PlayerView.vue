@@ -55,12 +55,9 @@ import './style.scss'
 import { watch, ref, computed } from 'vue';
 import { usePlayer } from '@/composables/player';
 import { useYandexMusic } from '@/composables/yandexMusic';
-// import PlayerPane from '@/components/PlayerPane/PlayerPane.vue'
 
 const { playerStatus, currentTrackData } = usePlayer()
 const { getCover } = useYandexMusic()
-
-console.log('currentTrackData:', currentTrackData.value)
 
 const coverSrc = ref<string>('')
 

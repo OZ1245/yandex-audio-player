@@ -14,15 +14,18 @@ export function usePlayer() {
   const $store = useStore();
   const $yandexMusic = useYandexMusic();
   const $player = inject("player") as Player;
-  const currentTimer: {
-    active: boolean;
-    id: number;
-  } = {
-    active: false,
-    id: 0,
-  };
+  let currentTimerId = 0;
   let audioBuffer: AudioBuffer | null = null;
   let nextBufferIsLoading = false;
+  let audioContext: AudioContext;
+
+  const createAudioContext = () => {
+    audioContext = new AudioContext();
+  };
+
+  const closeAudioContext = () => {
+    audioContext.close();
+  };
 
   const addToQueue = (track: Track): void => {
     $store.dispatch("yandexMusic/addTrackToQueue", track);
@@ -32,6 +35,7 @@ export function usePlayer() {
     track: Track
   ): Promise<AudioBuffer | undefined> => {
     if (!track.data) return;
+    createAudioContext();
 
     $yandexMusic.setCurrentTrackData(track.data);
 
@@ -53,22 +57,28 @@ export function usePlayer() {
   };
 
   const playTrack = (buffer: AudioBuffer): void => {
+    // if (!audioContext) return
+
     audioBuffer = buffer;
-    const sourceNode = $player.audioContext.createBufferSource();
+    const sourceNode = audioContext.createBufferSource();
     sourceNode.buffer = buffer;
-    sourceNode.connect($player.audioContext.destination);
+    sourceNode.connect(audioContext.destination);
     sourceNode.start(0);
     $store.dispatch("player/setStatus", "playing");
 
-    currentTimer.active = true;
+    console.log("audioContext:", audioContext);
+    console.log("getOutputTimestamp():", audioContext.getOutputTimestamp());
+    console.log("audioBuffer:", audioBuffer);
+    console.log("sourceNode:", sourceNode);
+
     checkCurrentTime();
 
     sourceNode.onended = () => {
-      // console.log('event:', event)
+      console.log("---sourceNode.onended---");
 
-      currentTimer.active = false;
-      clearTimeout(currentTimer.id);
+      clearTimeout(currentTimerId);
       sourceNode.stop(0);
+      closeAudioContext();
       nextBufferIsLoading = false;
 
       preparationCurrentTrack($store.state.yandexMusic.queue[0]).then(
@@ -83,39 +93,39 @@ export function usePlayer() {
   };
 
   const checkCurrentTime = () => {
-    if (currentTimer.active) {
-      currentTimer.id = setTimeout(() => {
-        if (audioBuffer) {
-          const difference: number =
-            audioBuffer.duration - $player.audioContext.currentTime;
-          const nextTrack = $store.state.yandexMusic.queue[0];
+    currentTimerId = setTimeout(() => {
+      if (audioBuffer) {
+        const difference: number =
+          audioBuffer.duration - audioContext.currentTime;
+        const nextTrack = $store.state.yandexMusic.queue[0];
 
-          if (difference <= 30 && nextTrack && !nextBufferIsLoading) {
-            nextBufferIsLoading = true;
+        console.log("difference:", difference);
 
-            $yandexMusic
-              .fetchDownloadInfo(nextTrack.data.id)
-              .then((downloadInfo: TrackDownloadInfo[]) => {
-                $store.dispatch("yandexMusic/setTrackDownloadInfo", {
-                  data: downloadInfo,
+        if (difference <= 30 && nextTrack && !nextBufferIsLoading) {
+          nextBufferIsLoading = true;
+
+          $yandexMusic
+            .fetchDownloadInfo(nextTrack.data.id)
+            .then((downloadInfo: TrackDownloadInfo[]) => {
+              $store.dispatch("yandexMusic/setTrackDownloadInfo", {
+                data: downloadInfo,
+                queueIndex: 0,
+              });
+
+              const url = getDownloadInfoUrl(nextTrack);
+
+              getBuffer(url).then((buffer: AudioBuffer) => {
+                $store.dispatch("yandexMusic/setTrackBuffer", {
+                  data: buffer,
                   queueIndex: 0,
                 });
-
-                const url = getDownloadInfoUrl(nextTrack);
-
-                getBuffer(url).then((buffer: AudioBuffer) => {
-                  $store.dispatch("yandexMusic/setTrackBuffer", {
-                    data: buffer,
-                    queueIndex: 0,
-                  });
-                });
               });
-          }
+            });
         }
+      }
 
-        checkCurrentTime();
-      }, 1000);
-    }
+      checkCurrentTime();
+    }, 1000);
   };
 
   const getDownloadInfoUrl = (track: Track): string => {
@@ -133,7 +143,7 @@ export function usePlayer() {
     return await $yandexMusic
       .fetchStream(url)
       .then(async ({ data }: AxiosResponse<ArrayBuffer>) => {
-        return await $player.audioContext
+        return await audioContext
           .decodeAudioData(data)
           .then((buffer: AudioBuffer) => {
             return buffer;
