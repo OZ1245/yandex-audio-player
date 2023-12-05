@@ -4,32 +4,34 @@
       v-for="(item, i) in props.tracks"
       :key="`track-item-${i}`"
       class="ymp-playlist__track"
-      :class="{ 'ymp-playlist__track--current': currentTrack && +currentTrack.id === item.id }"
+      :class="getTrackClassList(item)"
     >
       <template v-if="item.track">
         <div class="ymp-playlist__track-heading">
-          <template v-if="currentTrack && +currentTrack.id === item.id">
+          <template v-if="+currentTrack?.id === item.id">
             <button
-              v-if="playerStatus === 'stopped' || playerStatus === 'paused'"
+              v-if="playerStatus === 'paused'"
               class="ymp-playlist__main-control"
-              @click="onPlayTrack(item.track, i)"
+              @click="onResumeTrack()"
             >
               Play
             </button>
             <button
               v-if="playerStatus === 'playing'"
               class="ymp-playlist__main-control"
+              @click="onPauseTrack()"
             >
               Pause
             </button>
           </template>
-          <button
-            v-else
-            class="ymp-playlist__main-control"
-            @click="onPlayTrack(item.track, i)"
-          >
-            Play
-          </button>
+          <template v-else>
+            <button
+              class="ymp-playlist__main-control"
+              @click="onPlayTrack(item.track, i)"
+            >
+              Play
+            </button>
+          </template>
 
           <p class="ymp-playlist__track-title">
             {{ getTrackName(item.track) }}
@@ -53,27 +55,34 @@
 
 <script lang="ts" setup>
 import './style.scss'
-import { YandexMusicTrackItem, Track, TrackData } from '@/@types'
-import { defineProps, inject } from 'vue';
+import { YandexMusicTrackItem, YandexMusicTrack, Track, TrackData } from '@/@types'
+import { computed, defineProps, ref } from 'vue';
 import { useUtils } from '@/composables/utils';
 import { usePlayer } from '@/composables/player';
 
-const dayjs: any = inject('dayjs')
+// Composables 
 
-const {
-  currentTrackData: currentTrack,
-  playerStatus,
-  preparationCurrentTrack,
-  playTrack,
-  addToQueue
-} = usePlayer()
+const $player = usePlayer()
 const { converDurationToTime } = useUtils()
+
+// Props
 
 const props = defineProps<{
   tracks: YandexMusicTrackItem[]
 }>()
 
+// Computed
+
+const playerStatus = computed((): string => $player.playerStatus.value)
+const currentTrack = computed((): YandexMusicTrack => $player.currentTrackData.value)
+
 // Methods
+
+const getTrackClassList = (item: YandexMusicTrackItem) => {
+  return [
+    { 'ymp-playlist__track--current': currentTrack.value?.id && +currentTrack.value.id === item.id }
+  ]
+}
 
 const getTrackName = (track: TrackData): string => {
   return `
@@ -81,6 +90,7 @@ const getTrackName = (track: TrackData): string => {
     -
     ${track.title}`
 }
+
 const getTrackDuration = (track: TrackData): string => {
   return converDurationToTime(track.durationMs)
 }
@@ -91,24 +101,32 @@ const getTrackDuration = (track: TrackData): string => {
  * @param {number} index 
  */
 const onPlayTrack = (track: TrackData, index: number): void => {
-  preparationCurrentTrack({
+  $player.preparationCurrentTrack({
     data: track
   })
     .then((buffer) => {
       if (!buffer) return
 
-      playTrack(buffer)
+      $player.playTrack(buffer)
 
       if (typeof index === 'undefined') return
 
       props.tracks
         .map((item: YandexMusicTrackItem, i: number) => {
           if (i > index) {
-            addToQueue({
+            $player.addToQueue({
               data: item.track,
             } as Track)
           }
         }) || []
     })
+}
+
+const onPauseTrack = () => {
+  $player.pauseTrack()
+}
+
+const onResumeTrack = () => {
+  $player.resumeTrack()
 }
 </script>

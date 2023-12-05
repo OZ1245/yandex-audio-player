@@ -16,7 +16,6 @@ dayjs.extend(duration)
 export default {
   install: (app: any) => {
     const globalDayjs = dayjs
-    console.log('dayjs:', dayjs)
 
     // This is what you want:
     app.config.globalProperties.$dayjs = globalDayjs

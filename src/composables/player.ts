@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
 import { computed } from "vue";
-import { PlayerStatus, Track, TrackData, TrackDownloadInfo } from "@/@types";
+import { PlayerStatus, Track, YandexMusicTrack, TrackDownloadInfo } from "@/@types";
 import { useStore } from "vuex";
 
 export function usePlayer() {
@@ -20,6 +20,7 @@ export function usePlayer() {
     if (!audioContext) return;
 
     audioContext.close();
+    clearTimeout(currentTimerId)
   };
 
   // const clearPlayback = () => {
@@ -86,11 +87,15 @@ export function usePlayer() {
   };
 
   const pauseTrack = () => {
+    console.log('audioContext:', audioContext)
     audioContext.suspend()
+    clearTimeout(currentTimerId)
+    $store.dispatch('player/setStatus', 'paused');
   }
 
   const resumeTrack = () => {
     audioContext.resume()
+    clearTimeout(currentTimerId)
   }
 
   const checkCurrentTime = () => {
@@ -152,12 +157,10 @@ export function usePlayer() {
       });
   };
 
-  const playerStatus = computed(
-    (): PlayerStatus => $store.state.player.status
-  ).value;
+  const playerStatus = computed((): PlayerStatus => $store.state.player.status);
 
   const currentTrackData = computed(
-    (): TrackData | null => $store.state.yandexMusic.currentTrack.data || null
+    (): YandexMusicTrack | null => $store.state.yandexMusic.currentTrack.data || null
   );
 
   return {
