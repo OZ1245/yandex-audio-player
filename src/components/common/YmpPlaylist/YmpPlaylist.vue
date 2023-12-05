@@ -16,7 +16,6 @@
             >
               Play
             </button>
-            <!-- TODO: -->
             <button
               v-if="playerStatus === 'playing'"
               class="ymp-playlist__main-control"
@@ -33,15 +32,13 @@
           </button>
 
           <p class="ymp-playlist__track-title">
-            {{ item.track.artists.map(artist => artist.name).join(', ') }}
-            -
-            {{ item.track.title }}
+            {{ getTrackName(item.track) }}
           </p>
         </div>
 
         <ul class="ymp-playlist__track-controls">
           <li class="ymp-playlist__duration">
-            {{ item.track.durationMs ? millisecondsToDisplay(item.track.durationMs) : '00:00' }}
+            {{ getTrackDuration(item.track) }}
           </li>
         </ul>
       </template>
@@ -56,10 +53,12 @@
 
 <script lang="ts" setup>
 import './style.scss'
-import { YandexMusicTrack, YandexMusicTrackItem, Track, TrackData } from '@/@types'
-import { defineProps } from 'vue';
+import { YandexMusicTrackItem, Track, TrackData } from '@/@types'
+import { defineProps, inject } from 'vue';
 import { useUtils } from '@/composables/utils';
 import { usePlayer } from '@/composables/player';
+
+const dayjs: any = inject('dayjs')
 
 const {
   currentTrackData: currentTrack,
@@ -68,13 +67,23 @@ const {
   playTrack,
   addToQueue
 } = usePlayer()
-const { millisecondsToDisplay } = useUtils()
+const { converDurationToTime } = useUtils()
 
 const props = defineProps<{
-  tracks: YandexMusicTrack[] | []
+  tracks: YandexMusicTrackItem[]
 }>()
 
 // Methods
+
+const getTrackName = (track: TrackData): string => {
+  return `
+    ${track.artists.map(artist => artist.name).join(', ')}
+    -
+    ${track.title}`
+}
+const getTrackDuration = (track: TrackData): string => {
+  return converDurationToTime(track.durationMs)
+}
 
 /**
  * Проиграть трек из плейлиста

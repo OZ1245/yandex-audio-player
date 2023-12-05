@@ -17,10 +17,10 @@
 
         <ul class="playlist-info__data">
           <li class="playlist-info__data-item">
-            <span>Created:</span> {{ playlist?.created }}
+            <span>Created:</span> {{ playlistCreated }}
           </li>
           <li class="playlist-info__data-item">
-            <span>Duration:</span> {{ playlist?.durationMs ? millisecondsToDisplay(playlist?.durationMs) : '00:00:00' }}
+            <span>Duration:</span> {{ playlistDuration }}
           </li>
           <li class="playlist-info__data-item">
             <span>Tracks:</span> {{ playlist?.trackCount }}
@@ -48,16 +48,17 @@ import SubView from '@/components/SubView/SubView.vue'
 import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
 import { YandexMusicPlaylist } from '@/@types'
 import { useYandexMusic } from '@/composables/yandexMusic';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUtils } from '@/composables/utils';
-import { usePlayer } from '@/composables/player';
+
+const dayjs: any = inject('dayjs')
 
 // Composables
 
+const { converDurationToTime } = useUtils()
 const { params: routeParams } = useRoute()
 const { fetchPlaylistById, getCover } = useYandexMusic()
-const { millisecondsToDisplay } = useUtils()
 
 // Variables
 
@@ -69,6 +70,12 @@ const playlistCover = ref<string>('')
 // Computed
 
 const title = computed((): string => `Playlist "${playlistTitle.value}"`)
+const playlistCreated = computed((): string => (
+  dayjs(playlist.value?.created || 0).format('DD.MM.YYYY HH:mm:ss')
+))
+const playlistDuration = computed((): string => {
+  return converDurationToTime(playlist.value?.durationMs || 0)
+})
 
 // Methods
 

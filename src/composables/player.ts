@@ -74,7 +74,6 @@ export function usePlayer() {
     sourceNode.onended = () => {
       clearTimeout(currentTimerId);
       sourceNode.stop(0);
-      closeAudioContext();
       nextBufferIsLoading = false;
 
       preparationCurrentTrack($store.state.player.queue[0]).then((buffer) => {
@@ -85,6 +84,14 @@ export function usePlayer() {
       });
     };
   };
+
+  const pauseTrack = () => {
+    audioContext.suspend()
+  }
+
+  const resumeTrack = () => {
+    audioContext.resume()
+  }
 
   const checkCurrentTime = () => {
     currentTimerId = setTimeout(() => {
@@ -160,5 +167,8 @@ export function usePlayer() {
 
     playerStatus,
     currentTrackData,
+
+    pauseTrack,
+    resumeTrack,
   };
 }

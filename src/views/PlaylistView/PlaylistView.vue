@@ -1,8 +1,10 @@
 <template>
   <ymp-playlist
-    v-if="currentTrackData"
+    v-if="currentTrackData && playlist"
     :tracks="playlist.tracks"
   />
+
+  <p v-else>Ничего не проигрывается</p>
 </template>
 
 <script lang="ts" setup>

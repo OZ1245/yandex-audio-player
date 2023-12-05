@@ -16,6 +16,7 @@ export type YandexMusicAccountStatus = YM.Status | null;
 export type YandexMusicPlaylist = YM.Playlist;
 export type YandexMusicSettings = YM.Settings;
 export type YandexMusicTrackItem = YM.TrackItem;
+export type yandexMusicTrack = YM.Track;
 export type YandexMusicCover = YM.Cover;
 
 interface GetClient {

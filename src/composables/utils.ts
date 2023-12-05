@@ -1,4 +1,8 @@
+import { inject } from "vue";
+
 export function useUtils() {
+  const dayjs: any = inject('dayjs')
+
   const millisecondsToTime = (millis: number): string => {
     const minutes: number = Math.floor(millis / 60000);
     const seconds: string = ((millis % 60000) / 1000).toFixed(0);
@@ -31,8 +35,19 @@ export function useUtils() {
     return minutes + ":" + seconds;
   };
 
+  const converDurationToTime = (durationMs: number) => {
+    const duration = dayjs.duration(durationMs)
+  
+    if (duration.hours()) {
+      return duration.format('HH:mm:ss')
+    }
+  
+    return duration.format('mm:ss')
+  }
+
   return {
     millisecondsToTime,
     millisecondsToDisplay,
+    converDurationToTime
   };
 }
