@@ -36,11 +36,13 @@
         v-if="playerStatus === 'stopped' || playerStatus === 'paused'"
         type="button"
         class="player-view__control player-view__control--play"
+        @click="onPlayTrack()"
       >Play</button>
       <button
         v-if="playerStatus === 'playing'"
         type="button"
         class="player-view__control player-view__control--pause"
+        @click="onPauseTrack()"
       >Pause</button>
       <button
         type="button"
@@ -52,29 +54,36 @@
 
 <script lang="ts" setup>
 import './style.scss'
+import { YandexMusicTrack } from '@/@types'
 import { watch, ref, computed } from 'vue';
 import { usePlayer } from '@/composables/player';
 import { useYandexMusic } from '@/composables/yandexMusic';
 
-const { playerStatus, currentTrackData } = usePlayer()
+const $player = usePlayer()
 const { getCover } = useYandexMusic()
 
 const coverSrc = ref<string>('')
 
+// Computed
+
+const playerStatus = computed((): string => $player.playerStatus.value)
+const currentTrack = computed((): YandexMusicTrack | null => $player.currentTrackData.value)
 const trackName = computed((): string => {
-  if (currentTrackData.value) {
+  if (currentTrack.value) {
     return `
-      ${currentTrackData.value.artists.map(artist => artist.name).join(', ')}
+      ${currentTrack.value.artists.map(artist => artist.name).join(', ')}
       -
-      ${currentTrackData.value.title}`
+      ${currentTrack.value.title}`
   }
 
   return '-'
 })
 
+// Methods
+
 const fetchCover = () => {
-  if (currentTrackData.value?.coverUri) {
-    getCover(currentTrackData.value?.coverUri, true)
+  if (currentTrack.value?.coverUri) {
+    getCover(currentTrack.value?.coverUri, true)
       .then((result) => {
         if (result) {
           coverSrc.value = result
@@ -83,10 +92,28 @@ const fetchCover = () => {
   }
 }
 
+const onPlayTrack = () => {
+  if (!currentTrack.value) return
+
+  onResumeTrack()
+}
+
+const onPauseTrack = () => {
+  $player.pauseTrack()
+}
+
+const onResumeTrack = () => {
+  $player.resumeTrack()
+}
+
+// Hooks
+
 fetchCover()
 
+// Watchers
+
 watch(
-  () => currentTrackData.value,
+  () => currentTrack.value,
   (val, oldVal) => {
     if ((val?.id !== oldVal?.id)) {
       fetchCover()

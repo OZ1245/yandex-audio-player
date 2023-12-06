@@ -1,6 +1,5 @@
 import { AuthToken, UserName, UserPassword } from "@/@types";
-import { AxiosResponse } from "axios";
-import { getToken, TokenResponse } from "yandex-music-client/token";
+import { getToken } from "yandex-music-client/token";
 import { YandexMusicClient } from "yandex-music-client/YandexMusicClient";
 
 export default {

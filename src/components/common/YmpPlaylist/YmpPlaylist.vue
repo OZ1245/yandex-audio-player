@@ -74,7 +74,7 @@ const props = defineProps<{
 // Computed
 
 const playerStatus = computed((): string => $player.playerStatus.value)
-const currentTrack = computed((): YandexMusicTrack => $player.currentTrackData.value)
+const currentTrack = computed((): YandexMusicTrack | null => $player.currentTrackData.value)
 
 // Methods
 

@@ -1,27 +1,18 @@
 import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { PlayerStatus, Track, YandexMusicTrack, TrackDownloadInfo } from "@/@types";
 import { useStore } from "vuex";
 
 export function usePlayer() {
   const $store = useStore();
   const $yandexMusic = useYandexMusic();
+
+  const $audioContext: any = inject('audioContext');
+
   let currentTimerId = 0;
   let audioBuffer: AudioBuffer | null = null;
   let nextBufferIsLoading = false;
-  let audioContext: AudioContext;
-
-  const createAudioContext = () => {
-    audioContext = new AudioContext();
-  };
-
-  const closeAudioContext = () => {
-    if (!audioContext) return;
-
-    audioContext.close();
-    clearTimeout(currentTimerId)
-  };
 
   // const clearPlayback = () => {
 
@@ -38,10 +29,11 @@ export function usePlayer() {
   const preparationCurrentTrack = async (
     track: Track
   ): Promise<AudioBuffer | undefined> => {
-    closeAudioContext();
+    $audioContext.closeAudioContext();
+    clearTimeout(currentTimerId)
 
     if (!track.data) return;
-    createAudioContext();
+    $audioContext.createAudioContext();
 
     $yandexMusic.setCurrentTrackData(track.data);
 
@@ -64,9 +56,9 @@ export function usePlayer() {
 
   const playTrack = (buffer: AudioBuffer): void => {
     audioBuffer = buffer;
-    const sourceNode = audioContext.createBufferSource();
+    const sourceNode = $audioContext.context.value.createBufferSource();
     sourceNode.buffer = buffer;
-    sourceNode.connect(audioContext.destination);
+    sourceNode.connect($audioContext.context.value.destination);
     sourceNode.start(0);
     $store.dispatch("player/setStatus", "playing");
 
@@ -87,22 +79,22 @@ export function usePlayer() {
   };
 
   const pauseTrack = () => {
-    console.log('audioContext:', audioContext)
-    audioContext.suspend()
+    $audioContext.suspenAudioContext()
     clearTimeout(currentTimerId)
     $store.dispatch('player/setStatus', 'paused');
   }
 
   const resumeTrack = () => {
-    audioContext.resume()
-    clearTimeout(currentTimerId)
+    $audioContext.resumeAudioContext()
+    checkCurrentTime()
+    $store.dispatch('player/setStatus', 'playing');
   }
 
   const checkCurrentTime = () => {
     currentTimerId = setTimeout(() => {
       if (audioBuffer) {
         const difference: number =
-          audioBuffer.duration - audioContext.currentTime;
+          audioBuffer.duration - $audioContext.context.value.currentTime;
         const nextTrack = $store.state.player.queue[0];
 
         console.log("difference:", difference);
@@ -149,7 +141,8 @@ export function usePlayer() {
     return await $yandexMusic
       .fetchStream(url)
       .then(async ({ data }: AxiosResponse<ArrayBuffer>) => {
-        return await audioContext
+        return await $audioContext
+          .context.value
           .decodeAudioData(data)
           .then((buffer: AudioBuffer) => {
             return buffer;
