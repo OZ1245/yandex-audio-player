@@ -108,18 +108,9 @@ const onPlayTrack = (track: TrackData, index: number): void => {
       if (!buffer) return
 
       $player.playTrack(buffer)
-
-      if (typeof index === 'undefined') return
-
-      props.tracks
-        .map((item: YandexMusicTrackItem, i: number) => {
-          if (i > index) {
-            $player.addToQueue({
-              data: item.track,
-            } as Track)
-          }
-        }) || []
     })
+
+  if (typeof index !== 'undefined') $player.preparationQueue(index)
 }
 
 const onPauseTrack = () => {

@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
 import { computed, inject } from "vue";
-import { PlayerStatus, Track, YandexMusicTrack, TrackDownloadInfo } from "@/@types";
+import { PlayerStatus, Track, YandexMusicTrack, TrackDownloadInfo, YandexMusicTrackItem } from "@/@types";
 import { useStore } from "vuex";
 
 export function usePlayer() {
@@ -53,6 +53,16 @@ export function usePlayer() {
       return track.buffer;
     }
   };
+
+  const preparationQueue = (index: number) => {
+    $store.state.yandexMusic.playlist.tracks
+      .slice(index+1)
+      ?.map((item: YandexMusicTrackItem) => {
+        addToQueue({
+          data: item.track
+        } as Track)
+      })
+  }
 
   const playTrack = (buffer: AudioBuffer): void => {
     audioBuffer = buffer;
@@ -158,6 +168,7 @@ export function usePlayer() {
 
   return {
     preparationCurrentTrack,
+    preparationQueue,
     playTrack,
     addToQueue,
 
