@@ -118,13 +118,15 @@ export function useYandexMusic() {
   };
 
   /**
-   * Получить инфо о файле трека
-   * @param trackId
-   * @returns
+   * Получить инфо о файле трека.
+   * Полученный downloadInfo записывает в currentTrack, если необходимо
+   * @param {number | string} trackId Id трека
+   * @param {boolean} current Флаг, нужно ли записать downloadInfo в currentTrack
+   * @returns {TrackDownloadInfo[]} Массив информации для загрузки
    */
   const fetchDownloadInfo = async (
     trackId: number | string,
-    current = false as boolean
+    current = false
   ): Promise<TrackDownloadInfo[]> => {
     return await client.value.tracks
       .getDownloadInfo(trackId, true)
@@ -132,6 +134,7 @@ export function useYandexMusic() {
         ({ result }: Response<TrackDownloadInfo[]>): TrackDownloadInfo[] => {
           if (current) {
             setCurrentDownloadInfo(result);
+            // $store.dispatch("yandexMusic/setCurrentTrackDownloadInfo", result);
           }
 
           return result;

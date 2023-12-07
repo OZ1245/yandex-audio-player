@@ -49,6 +49,14 @@ export default {
       state.currentTrack.buffer = data;
     },
 
+    REMOVE_CURRENT_TRACK(state) {
+      state.currentTrack = {
+        data: null,
+        downloadInfo: [],
+        buffer: null
+      }
+    },
+
     SET_PLAYLIST(state, data) {
       state.playlist = data;
     },
@@ -72,8 +80,13 @@ export default {
       commit("SET_CURRENT_TRACK_BUFFER", data);
     },
 
+    removeCurrentTrack({commit}) {
+      commit('REMOVE_CURRENT_TRACK')
+    },
+
     setPlaylist({ commit }, data: YandexMusicPlaylist) {
       commit("SET_PLAYLIST", data);
     },
+
   },
 };

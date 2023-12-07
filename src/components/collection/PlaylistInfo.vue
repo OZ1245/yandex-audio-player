@@ -29,7 +29,10 @@
             <span>Owner:</span> {{ playlist?.owner.name }}
           </li>
           <li class="playlist-info__data-item">
-            <button type="button">Play</button>
+            <button
+              type="button"
+              @click="onPlayPlaylist()"
+            >Play</button>
           </li>
         </ul>
       </div>
@@ -46,11 +49,12 @@
 import './style.scss'
 import SubView from '@/components/SubView/SubView.vue'
 import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
-import { YandexMusicPlaylist } from '@/@types'
+import { YandexMusicTrack, YandexMusicPlaylist } from '@/@types'
 import { useYandexMusic } from '@/composables/yandexMusic';
 import { computed, inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUtils } from '@/composables/utils';
+import { usePlayer } from '@/composables/player';
 
 const dayjs: any = inject('dayjs')
 
@@ -59,6 +63,7 @@ const dayjs: any = inject('dayjs')
 const { converDurationToTime } = useUtils()
 const { params: routeParams } = useRoute()
 const { fetchPlaylistById, getCover } = useYandexMusic()
+const $player = usePlayer()
 
 // Variables
 
@@ -79,7 +84,9 @@ const playlistDuration = computed((): string => {
 
 // Methods
 
-// TODO:
+const onPlayPlaylist = () => {
+  $player.startPlayback(playlist.value?.tracks[0].track as YandexMusicTrack)
+}
 
 // Hooks
 

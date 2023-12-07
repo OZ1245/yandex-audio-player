@@ -2,14 +2,20 @@ import { ref } from "vue";
 
 export default {
   install: (app: any) => {
-    const audioContext = ref<AudioContext | undefined>()
+    const audioContext = ref<AudioContext | null>(null)
 
     const createAudioContext = () => {
       audioContext.value = new AudioContext();
     };
 
     const closeAudioContext = () => {
+      console.log('---closeAudioContext---');
+      
       audioContext.value?.close();
+      audioContext.value = null
+
+      console.log('audioContext.value:', audioContext.value);
+      
     };
 
     const suspenAudioContext = () => {

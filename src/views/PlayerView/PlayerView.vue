@@ -99,11 +99,11 @@ const onPlayTrack = () => {
 }
 
 const onPauseTrack = () => {
-  $player.pauseTrack()
+  $player.pausePayback()
 }
 
 const onResumeTrack = () => {
-  $player.resumeTrack()
+  $player.resumePayback()
 }
 
 // Hooks

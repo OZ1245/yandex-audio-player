@@ -27,7 +27,7 @@
           <template v-else>
             <button
               class="ymp-playlist__main-control"
-              @click="onPlayTrack(item.track, i)"
+              @click="onPlayTrack(item.track)"
             >
               Play
             </button>
@@ -96,28 +96,18 @@ const getTrackDuration = (track: TrackData): string => {
 }
 
 /**
- * Проиграть трек из плейлиста
- * @param {TrackData} track
- * @param {number} index 
+ * Начать проигрывание трека. Последующие за ним треки добавляются в очередь
+ * @param {YandexMusicTrack} track Объект информации о треке
  */
-const onPlayTrack = (track: TrackData, index: number): void => {
-  $player.preparationCurrentTrack({
-    data: track
-  })
-    .then((buffer) => {
-      if (!buffer) return
-
-      $player.playTrack(buffer)
-    })
-
-  if (typeof index !== 'undefined') $player.preparationQueue(index)
+const onPlayTrack = (track: YandexMusicTrack) => {
+  $player.startPlayback(track)
 }
 
 const onPauseTrack = () => {
-  $player.pauseTrack()
+  $player.pausePayback()
 }
 
 const onResumeTrack = () => {
-  $player.resumeTrack()
+  $player.resumePayback()
 }
 </script>

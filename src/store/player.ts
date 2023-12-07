@@ -35,6 +35,9 @@ export default {
     REMOVE_TRACK_FROM_QUEUE(state, index) {
       state.queue.splice(index, 1);
     },
+    REMOVE_TRACKS_FROM_QUEUE(state) {
+      state.queue = []
+    }
   },
   actions: <ActionTree<State, any>>{
     setStatus({ commit }, status: PlayerStatus) {
@@ -77,5 +80,8 @@ export default {
     removeTrackFromQueue({ commit }, index: number) {
       commit("REMOVE_TRACK_FROM_QUEUE", index);
     },
+    removeAllTracksFromQueue({commit}) {
+      commit('REMOVE_TRACKS_FROM_QUEUE')
+    }
   },
 };
