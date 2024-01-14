@@ -37,7 +37,7 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
-});
+})
 
 router.beforeEach((to: any, from: any) => {
   const token = localStorage.getItem("ymToken");

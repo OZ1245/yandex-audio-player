@@ -1,0 +1,112 @@
+.ymp-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+
+  padding-block: var(--b-padding-block);
+  padding-inline: var(--b-padding-inline);
+}
+
+.ymp-player__cover {
+  width: 40%;
+  aspect-ratio: 1/1;
+
+  border: 1px solid var(--c-border);
+
+  img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.ymp-player__track {
+  width: 100%;
+
+  padding-block: var(--b-padding-inline);
+}
+.ymp-player__track-name {
+  font-size: 2em;
+  text-align: center;
+
+  margin: 0;
+}
+
+.ymp-player__progress {
+  width: 100%;
+  height: 20px;
+
+  position: relative;
+}
+.ymp-player__empty-track {
+  width: 100%;
+  height: 3px;
+
+  position: absolute;
+  left: 0;
+  top: calc(20px / 2);
+
+  background-color: var(--c-background-surface);
+}
+.ymp-player__progress-track {
+  width: 0;
+  height: 100%;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  background-color: var(--c-border);
+}
+.ymp-player__slider {
+  width: 20px;
+  height: 20px;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  background-color: var(--c-border);
+  border-radius: 50%;
+}
+
+.ymp-player__times {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  font-size: 1.2em;
+
+  padding-block: var(--b-padding-block);
+}
+.ymp-player__past-tense {
+}
+.ymp-player__duration-time {
+}
+
+.ymp-player__controls {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  width: 100%;
+}
+.ymp-player__control {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 8em;
+  aspect-ratio: 1/1;
+}
+.ymp-player__control--backward {
+}
+.ymp-player__control--play {
+}
+.ymp-player__control--pause {
+}
+.ymp-player__control--forward {
+}

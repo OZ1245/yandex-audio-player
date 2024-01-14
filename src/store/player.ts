@@ -1,13 +1,25 @@
-import { Track, PlayerStatus, TrackDownloadInfo, TrackBuffer } from "@/@types";
+import { 
+  Track, 
+  PlayerStatus, 
+  TrackDownloadInfo, 
+  TrackBuffer,
+  TrackData,
+} from "@/@types";
 import { GetterTree, MutationTree, ActionTree } from "vuex";
 
 interface State {
   status: PlayerStatus;
   queue: Track[];
+  playback: Track;
 }
 
 export default {
   state: <State>{
+    playback: {
+      data: null,
+      downloadInfo: [],
+      buffer: null,
+    },
     status: "stopped",
     queue: [],
   },
@@ -15,6 +27,29 @@ export default {
   mutations: <MutationTree<State>>{
     SET_STATUS(state, status) {
       state.status = status;
+    },
+
+    SET_PLAYBACK_DATA(state, data) {
+      state.playback.data = data;
+    },
+    SET_PLAYBACK_DOWNLOAD_INFO(state, data) {
+      console.log('--- SET_PLAYBACK_DOWNLOAD_INFO mutation ---');
+      console.log('data:', data);
+      
+      state.playback.downloadInfo = data;
+
+      console.log('state.playback.downloadInfo:', state.playback.downloadInfo);
+      
+    },
+    SET_PLAYBACK_BUFFER(state, data) {
+      state.playback.buffer = data;
+    },
+    REMOVE_PLAYBACK(state) {
+      state.playback = {
+        data: null,
+        downloadInfo: [],
+        buffer: null
+      }
     },
 
     SET_TRACK_DOWNLOAD_INFO(
@@ -44,6 +79,13 @@ export default {
       commit("SET_STATUS", status);
     },
 
+    setPlaybackData({ commit }, data: TrackData) {
+      commit("SET_PLAYBACK_DATA", data);
+    },
+    removePlayback({commit}) {
+      commit('REMOVE_PLAYBACK')
+    },
+
     setTrackDownloadInfo(
       { commit },
       { data, queueIndex }: { data: TrackDownloadInfo[]; queueIndex?: number }
@@ -56,8 +98,10 @@ export default {
 
         return;
       }
+      console.log('data:', data);
+      
 
-      commit("SET_CURRENT_TRACK_DOWNLOAD_INFO", data);
+      commit("SET_PLAYBACK_DOWNLOAD_INFO", data);
     },
     setTrackBuffer(
       { commit },
@@ -72,7 +116,7 @@ export default {
         return;
       }
 
-      commit("SET_CURRENT_TRACK_BUFFER", data);
+      commit("SET_PLAYBACK_BUFFER", data);
     },
     addTrackToQueue({ commit }, data: Track) {
       commit("ADD_TRACK_TO_QUEUE", data);

@@ -12,6 +12,7 @@ export type TrackDownloadInfo = YM.TrackDownloadInfo;
 export type TrackBuffer = AudioBuffer;
 
 export type YandexMusicClient = YM.YandexMusicClient | null;
+export type YandexMusicAccount = YM.Account | null;
 export type YandexMusicAccountStatus = YM.Status | null;
 export type YandexMusicPlaylist = YM.Playlist;
 export type YandexMusicSettings = YM.Settings;

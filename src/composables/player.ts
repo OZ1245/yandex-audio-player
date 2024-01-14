@@ -1,16 +1,28 @@
 import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
-import { computed, inject } from "vue";
-import { PlayerStatus, Track, YandexMusicTrack, TrackDownloadInfo, YandexMusicTrackItem } from "@/@types";
-import { useStore } from "vuex";
+import { computed, inject, ref } from "vue";
+import { 
+  PlayerStatus, 
+  Track, 
+  YandexMusicTrack, 
+  TrackDownloadInfo, 
+  YandexMusicTrackItem,
+  Response,
+} from "@/@types";
+// import { useStore } from "vuex";
+import store from '@/store'
 
 export function usePlayer() {
-  const $store = useStore();
+  // const $store = useStore();
+  const $store = store;
   const $yandexMusic = useYandexMusic();
-  const $audioContext: any = inject('audioContext');
+  
+  // const $yandexMusicClient: any = inject('$yandexMusicClient')
+  // const $audioContext: any = inject('audioContext');
+  const audioContext = ref<AudioContext | null>(null)
 
   // Идентификатор таймера
-  let currentTrackTimerId = 0;
+  let playbackTimerId = 0;
   // Буффер трека
   let audioBuffer: AudioBuffer | null = null;
   // Флаг, что сейчас загружается буффер следующего трека
@@ -19,9 +31,33 @@ export function usePlayer() {
   // Текущий статус плеера
   const playerStatus = computed((): PlayerStatus => $store.state.player.status);
   // Текущий трек
-  const currentTrackData = computed(
-    (): YandexMusicTrack | null => $store.state.yandexMusic.currentTrack.data || null
+  const playback = computed(
+    (): Track => $store.state.player.playback
   );
+
+  // ---
+  const createAudioContext = () => {
+    audioContext.value = new AudioContext();
+  };
+
+  const closeAudioContext = () => {
+    console.log('---closeAudioContext---');
+    
+    audioContext.value?.close();
+    audioContext.value = null
+
+    console.log('audioContext.value:', audioContext.value);
+    
+  };
+
+  const suspenAudioContext = () => {
+    audioContext.value?.suspend();
+  }
+
+  const resumeAudioContext = () => {
+    audioContext.value?.resume();
+  }
+  // ---
 
   /**
    * Начало проигрывания
@@ -36,7 +72,7 @@ export function usePlayer() {
     stopPlayback()
 
     // Получаем массив DownloadInfo и AudioBuffer трека
-    preparationCurrentTrack({ data: track })
+    preparationPlayback({ data: track })
       .then((buffer) => {
         if (!buffer) return
 
@@ -53,15 +89,19 @@ export function usePlayer() {
    * @param {YandexMusicTrack} track Данные о треке 
    * @returns {AudioBuffer} Буффер трека для воспроизведения
    */
-  const preparationCurrentTrack = async (
+  const preparationPlayback = async (
     track: Track
   ): Promise<AudioBuffer | undefined> => {
+    console.log('--- preparationPlayback ---');
+    console.log('$yandexMusic:', $yandexMusic);
+    
+
     if (!track.data) return
 
     // Создаем новый контекст
-    $audioContext.createAudioContext();
+    createAudioContext();
     // Устанавливаем данные о текущем треке
-    $yandexMusic.setCurrentTrackData(track.data);
+    $store.dispatch("player/setPlaybackData", track.data);
 
     // const currentTrack = $yandexMusic.currentTrack
 
@@ -74,16 +114,21 @@ export function usePlayer() {
     // и буффер по этим данным
     return await $yandexMusic
       .fetchDownloadInfo(track.data.id, true)
-      .then(async (result) => {
+      .then(async (result: any) => {
+        console.log('playback.value:', playback.value);
+        console.log('result:', result);
+        
         if (!result) return
 
         // Получаем ссылку на загрузку
-        const url = getDownloadInfoUrl($yandexMusic.currentTrack);
+        const url = getDownloadInfoUrl(playback.value);
+        console.log('getDownloadInfoUrl url:', url);
+        
 
         // Получаем буффер по ссылке
         return await getBuffer(url)
-          .then((buffer: AudioBuffer) => {
-            return buffer;
+          .then((buffer: AudioBuffer | null) => {
+            if (buffer) return buffer;
           });
       })
   };
@@ -122,14 +167,15 @@ export function usePlayer() {
    */
   const playTrack = (buffer: AudioBuffer): void => {
     console.log('---playTrack---');
+    if (!audioContext.value) return
     
     // Сохраняем буффер в объект для дальнейшего использования
     audioBuffer = buffer
 
     // Создаем источник контекста
-    const sourceNode = $audioContext.context.value.createBufferSource();
+    const sourceNode = audioContext.value.createBufferSource();
     sourceNode.buffer = audioBuffer;
-    sourceNode.connect($audioContext.context.value.destination);
+    sourceNode.connect(audioContext.value.destination);
 
     // Начинаем воспроизведние
     sourceNode.start(0);
@@ -140,7 +186,7 @@ export function usePlayer() {
 
     // Устанавливаем обработчик окончания воспроизведения
     sourceNode.onended = () => {
-      endPlaybackHandler(sourceNode)
+      endPlaybackHandler()
     };
   };
 
@@ -156,26 +202,26 @@ export function usePlayer() {
    * Таймер трека - отслеживание временной метки контекста
    */
   const currentTrackTimer = () => {
-    clearTimeout(currentTrackTimerId)
-    // currentTrackTimerId = setTimeout(() => {
-      if (audioBuffer) {
-        // Вычисляем, сколько осталось до конца трека
-        const difference: number =
-          audioBuffer.duration - $audioContext.context.value.currentTime;
-        console.log("difference:", difference);
-        
-        // Если до конца трека осталось меньше 30 сек., то предзагружаем буффер 
-        // для следующего трека, если он есть
-        if (difference <= 30 && $store.state.player.queue[0] && !nextBufferIsLoading) {
-          nextBufferIsLoading = true;
+    clearTimeout(playbackTimerId)
+    if (audioBuffer) {
+      // Вычисляем, сколько осталось до конца трека
+      const currentTime = audioContext.value?.currentTime || 0
+      const difference: number =
+        audioBuffer.duration - currentTime;
+      console.log("difference:", difference);
+      
+      // Если до конца трека осталось меньше 30 сек., то предзагружаем буффер 
+      // для следующего трека, если он есть
+      if (difference <= 30 && $store.state.player.queue[0] && !nextBufferIsLoading) {
+        nextBufferIsLoading = true;
 
-          // Подготовка следующего трека
-          fetchNextTrack()
-        }
-
-        currentTrackTimerId = setTimeout(currentTrackTimer, 1000);
+        // Подготовка следующего трека
+        fetchNextTrack()
       }
-    // }, 1000);
+
+      // Повторяем через секунду
+      playbackTimerId = setTimeout(currentTrackTimer, 1000);
+    }
   };
 
   /**
@@ -200,7 +246,9 @@ export function usePlayer() {
         const url = getDownloadInfoUrl(nextTrack);
 
         // Загружаем буффер трека
-        getBuffer(url).then((buffer: AudioBuffer) => {
+        getBuffer(url).then((buffer: AudioBuffer | null) => {
+          if (!buffer) return
+
           $store.dispatch("player/setTrackBuffer", {
             data: buffer,
             queueIndex: 0,
@@ -215,6 +263,10 @@ export function usePlayer() {
    * @returns {string} Ссылка на получение буффера
    */
   const getDownloadInfoUrl = (track: Track): string => {
+    console.log('--- getDownloadInfoUrl ---');
+    console.log('track:', track);
+    
+    
     // По-убывающей, сначала самый быстрый битрейд
     return (
       track.downloadInfo?.find(
@@ -231,39 +283,45 @@ export function usePlayer() {
    * @param {string} url Ссылка на буффер
    * @returns {AudioBuffer} Буффер трека
    */
-  const getBuffer = async (url: string): Promise<AudioBuffer> => {
+  const getBuffer = async (url: string): Promise<AudioBuffer | null> => {
+    console.log('--- getBuffer ---');
+    console.log('url:', url);
+    
+    
     return await $yandexMusic
       .fetchStream(url)
-      .then(async ({ data }: AxiosResponse<ArrayBuffer>) => {
-        // Полученный массив медиа-данных декодируем буффер и отдаем его
-        return await $audioContext
-          .context.value
-          .decodeAudioData(data)
+      // .then(async ({ data }: AxiosResponse<ArrayBuffer>) => {
+      .then(async ({ data }: any) => {
+        console.log('data:', data);
+        
+        // Полученный массив медиа-данных декодируем в буффер и отдаем его
+        return await audioContext.value
+          ?.decodeAudioData(data)
           .then((buffer: AudioBuffer) => {
             return buffer;
           });
-      });
+      }) || null
   };
 
   /**
    * Приостановить поспроизведение
    */
-  const pausePayback = () => {
+  const pausePlayback = () => {
     // Тормозим таймер (сбрасываем)
-    clearTimeout(currentTrackTimerId)
+    clearTimeout(playbackTimerId)
     // Задерживаем контекст
-    $audioContext.suspenAudioContext()
+    suspenAudioContext()
     $store.dispatch('player/setStatus', 'paused');
   }
 
   /**
    * Продолжить воспроизведение
    */
-  const resumePayback = () => {
+  const resumePlayback = () => {
     // Запускаем таймер
     currentTrackTimer()
     // Продолжаем воспроизведение контекста
-    $audioContext.resumeAudioContext()
+    resumeAudioContext()
     $store.dispatch('player/setStatus', 'playing');
   }
 
@@ -274,13 +332,13 @@ export function usePlayer() {
     console.log('---stopPlayback---');
 
     // Закрываем контекст
-    $audioContext.closeAudioContext()
+    closeAudioContext()
 
     // Сбрасываем буффер
     audioBuffer = null
     
     // Тормозим таймер
-    clearTimeout(currentTrackTimerId)
+    clearTimeout(playbackTimerId)
 
     // TODO: Не понимаю пока, нужно ли отчищать очередь
     $store.dispatch('player/removeAllTracksFromQueue')
@@ -291,7 +349,7 @@ export function usePlayer() {
    * Обработчик окончания проигрывания источника контекста
    * @param {any} sourceNode Источник контекста
    */
-  const endPlaybackHandler = (sourceNode: any) => {
+  const endPlaybackHandler = () => {
     // Получаем следующий трек
     const nextTrack = $store.state.player.queue[0]
     console.log('nextTrack:', nextTrack);
@@ -307,18 +365,45 @@ export function usePlayer() {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // const fetchDownloadInfo = async (
+  //   trackId: number | string,
+  //   current = false
+  // ): Promise<TrackDownloadInfo[] | []> => {
+  //   console.log('---fetchDownloadInfo---');
+    
+  //   console.log('$yandexMusicClient:', $yandexMusicClient);
+  //   if (!$yandexMusicClient) return []
+
+    
+  //   return await $yandexMusicClient.tracks
+  //     .getDownloadInfo(trackId)
+  //     .then(
+  //       ({ result }: Response<TrackDownloadInfo[]>) => {
+  //         console.log('result:', result);
+          
+  //         if (current) {
+  //           $store.dispatch("player/setPlaybackInfo", result);
+  //         }
+
+  //         return result;
+  //       }
+  //     );
+  // };
+  // ---------------------------------------------------------------------------
+
   return {
     startPlayback,
 
-    preparationCurrentTrack,
+    preparationPlayback,
     preparationQueue,
     playTrack,
     addToQueue,
 
     playerStatus,
-    currentTrackData,
+    playback,
 
-    pausePayback,
-    resumePayback,
+    pausePlayback,
+    resumePlayback,
   };
 }

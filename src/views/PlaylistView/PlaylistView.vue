@@ -1,6 +1,6 @@
 <template>
   <ymp-playlist
-    v-if="currentTrackData && playlist"
+    v-if="currentTrack && playlist"
     :tracks="playlist.tracks"
   />
 
@@ -8,10 +8,14 @@
 </template>
 
 <script lang="ts" setup>
+import { YandexMusicTrack } from '@/@types'
+import { computed } from "vue";
 import { useYandexMusic } from '@/composables/yandexMusic'
-import { usePlayer } from '@/composables/player'
 import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
+import { usePlayer } from "@/composables/player";
 
 const { playlist } = useYandexMusic()
-const { currentTrackData } = usePlayer()
+const $player = usePlayer()
+
+const currentTrack = computed((): YandexMusicTrack | null => $player.playback.value.data)
 </script>

@@ -19,22 +19,33 @@
 </template>
 
 <script lang="ts" setup>
-import { LoadingState } from '@/@types'
+import { YandexMusicAccount, Response, YandexMusicTrack } from "@/@types";
 import { useYandexMusic } from '@/composables/yandexMusic'
-import { ref } from 'vue'
+import { inject, ref, onMounted } from 'vue'
 import NavigationPane from '@/components/NavigationPane/NavigationPane.vue'
+import { useStore } from "vuex";
+import { usePlayer } from '@/composables/player';
 
-const { fetchClient, fetchAccountStatus } = useYandexMusic()
+const { fetchAccount } = useYandexMusic()
+// const $yandexMusicClient: any = inject('$yandexMusicClient')
+// const { dispatch } = useStore()
+const $player = usePlayer()
+const $bus: any = inject('bus')
 
-const isLoading = ref<LoadingState>(true)
+const isLoading = ref<boolean>(true)
 
-fetchClient()
-  .then((result) => {
-    if (result) {
-      fetchAccountStatus()
-        .then(() => {
-          isLoading.value = false
-        })
-    }
+// fetchAccount()
+//   .then(() => {
+//     isLoading.value = false
+//   })
+fetchAccount()
+  .then(() => {
+    isLoading.value = false
   })
+
+onMounted(() => {
+  $bus.on('player:startPlayback', (track: YandexMusicTrack) => $player.startPlayback(track))
+  $bus.on('player:pausePlayback', () => $player.pausePlayback())
+  $bus.on('player:resumePlayback', () => $player.resumePlayback())
+})
 </script>

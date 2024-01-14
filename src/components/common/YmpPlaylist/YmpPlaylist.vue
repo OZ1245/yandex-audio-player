@@ -8,7 +8,7 @@
     >
       <template v-if="item.track">
         <div class="ymp-playlist__track-heading">
-          <template v-if="+currentTrack?.id === item.id">
+          <template v-if="currentTrack && +currentTrack.id === item.id">
             <button
               v-if="playerStatus === 'paused'"
               class="ymp-playlist__main-control"
@@ -55,15 +55,16 @@
 
 <script lang="ts" setup>
 import './style.scss'
-import { YandexMusicTrackItem, YandexMusicTrack, Track, TrackData } from '@/@types'
-import { computed, defineProps, ref } from 'vue';
+import { YandexMusicTrackItem, YandexMusicTrack, TrackData } from '@/@types'
+import { computed, defineProps, inject } from 'vue';
 import { useUtils } from '@/composables/utils';
 import { usePlayer } from '@/composables/player';
 
 // Composables 
 
-const $player = usePlayer()
 const { converDurationToTime } = useUtils()
+const $player = usePlayer()
+const $bus: any = inject('bus')
 
 // Props
 
@@ -74,7 +75,7 @@ const props = defineProps<{
 // Computed
 
 const playerStatus = computed((): string => $player.playerStatus.value)
-const currentTrack = computed((): YandexMusicTrack | null => $player.currentTrackData.value)
+const currentTrack = computed((): YandexMusicTrack | null => $player.playback.value.data)
 
 // Methods
 
@@ -100,14 +101,19 @@ const getTrackDuration = (track: TrackData): string => {
  * @param {YandexMusicTrack} track Объект информации о треке
  */
 const onPlayTrack = (track: YandexMusicTrack) => {
-  $player.startPlayback(track)
+  // console.log('$player:', $player);
+
+  // $player.startPlayback(track)
+  $bus.emit('player:startPlayback', track)
 }
 
 const onPauseTrack = () => {
-  $player.pausePayback()
+  // $player.pausePlayback()
+  $bus.emit('player:pausePlayback')
 }
 
 const onResumeTrack = () => {
-  $player.resumePayback()
+  // $player.resumePlayback()
+  $bus.emit('player:resumePlayback')
 }
 </script>

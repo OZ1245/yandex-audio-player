@@ -65,9 +65,8 @@
 
 <script lang="ts" setup>
 import './style.scss'
-import { withDefaults, defineProps, ref } from 'vue'
+import { withDefaults, defineProps, ref, inject } from 'vue'
 import { useYandexMusic } from '@/composables/yandexMusic'
-import { usePlayer } from '@/composables/player'
 import { useUtils } from '@/composables/utils'
 import {
   TrackData,
@@ -89,7 +88,7 @@ const {
   playTrack,
   playerStatus,
   currentTrackData
-} = usePlayer()
+}: any = inject('$player')
 
 const { millisecondsToTime } = useUtils()
 

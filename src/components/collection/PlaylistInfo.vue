@@ -54,7 +54,6 @@ import { useYandexMusic } from '@/composables/yandexMusic';
 import { computed, inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUtils } from '@/composables/utils';
-import { usePlayer } from '@/composables/player';
 
 const dayjs: any = inject('dayjs')
 
@@ -63,7 +62,8 @@ const dayjs: any = inject('dayjs')
 const { converDurationToTime } = useUtils()
 const { params: routeParams } = useRoute()
 const { fetchPlaylistById, getCover } = useYandexMusic()
-const $player = usePlayer()
+// const $player: any = inject('$player')
+const $bus: any = inject('bus')
 
 // Variables
 
@@ -85,10 +85,15 @@ const playlistDuration = computed((): string => {
 // Methods
 
 const onPlayPlaylist = () => {
-  $player.startPlayback(playlist.value?.tracks[0].track as YandexMusicTrack)
+  console.log('check');
+
+  // $player.startPlayback(playlist.value?.tracks[0].track as YandexMusicTrack)
+  $bus.emit('player:startPlayback', playlist.value?.tracks[0].track)
 }
 
 // Hooks
+
+console.log('playlistKind.value:', playlistKind.value);
 
 fetchPlaylistById(playlistKind.value)
   .then((result: YandexMusicPlaylist | undefined) => {

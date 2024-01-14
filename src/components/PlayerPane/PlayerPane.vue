@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { usePlayer } from '@/composables/player'
+import { inject } from 'vue';
 
-const { playerStatus } = usePlayer()
+const { playerStatus }: any = inject('player')
 </script>
