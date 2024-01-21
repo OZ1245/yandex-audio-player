@@ -1,13 +1,11 @@
-import { AxiosResponse } from "axios";
 import { useYandexMusic } from "./yandexMusic";
-import { computed, inject, ref } from "vue";
+import { computed, ref } from "vue";
 import { 
   PlayerStatus, 
   Track, 
   YandexMusicTrack, 
   TrackDownloadInfo, 
   YandexMusicTrackItem,
-  Response,
 } from "@/@types";
 // import { useStore } from "vuex";
 import store from '@/store'

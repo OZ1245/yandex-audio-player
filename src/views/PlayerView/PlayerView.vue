@@ -7,7 +7,7 @@
 import { YandexMusicTrack } from '@/@types'
 import { inject, onMounted } from 'vue';
 import { usePlayer } from '@/composables/player';
-import YmpPlayer from '@/components/common/YmpPlayer.vue/YmpPlayer.vue';
+import YmpPlayer from '@/components/common/YmpPlayer/YmpPlayer.vue';
 
 const $player = usePlayer()
 const $bus: any = inject('bus')

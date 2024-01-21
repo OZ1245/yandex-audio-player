@@ -1,18 +1,12 @@
-import { YandexMusicPlugin, Response, YandexMusicCover } from "@/@types";
+import { YandexMusicCover } from "@/@types";
 import {
   YandexMusicAccountStatus,
   YandexMusicAccount,
   YandexMusicPlaylist,
-  TrackData,
   TrackDownloadInfo,
-  Track,
 } from "@/@types";
 import { computed, inject } from "vue";
 import { useStore } from "vuex";
-import axios, { AxiosResponse } from "axios";
-import CryptoJS from "crypto-js";
-// import { YandexMusicClient } from "yandex-music-client";
-import yandexMusicClient from "@/plugins/yandexMusic"
 
 export function useYandexMusic() {
   const $store = useStore();
