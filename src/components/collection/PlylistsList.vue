@@ -73,7 +73,7 @@ const props = withDefaults(defineProps<{
 
 // Computed
 
-const currentPlaylist = computed((): YandexMusicPlaylist | undefined => $yandexMusic.playlist)
+const currentPlaylist = computed((): YandexMusicPlaylist | null => $player.playlist.value)
 const playerStatus = computed((): PlayerStatus => $player.playerStatus.value)
 
 // Methods

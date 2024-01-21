@@ -6,6 +6,7 @@ import {
   YandexMusicTrack, 
   TrackDownloadInfo, 
   YandexMusicTrackItem,
+  YandexMusicPlaylist,
 } from "@/@types";
 // import { useStore } from "vuex";
 import store from '@/store'
@@ -27,11 +28,16 @@ export function usePlayer() {
   let nextBufferIsLoading = false;
 
   // Текущий статус плеера
-  const playerStatus = computed((): PlayerStatus => $store.state.player.status);
+  const playerStatus = computed((): PlayerStatus => (
+    $store.state.player.status
+  ));
   // Текущий трек
-  const playback = computed(
-    (): Track => $store.state.player.playback
-  );
+  const playback = computed((): Track => (
+    $store.state.player.playback
+  ));
+  const playlist = computed((): YandexMusicPlaylist | null => (
+    $store.state.player.queue.data
+  ))
 
   // ---
   const createAudioContext = () => {
@@ -119,6 +125,8 @@ export function usePlayer() {
    * @param {number} id Id трека, с которого началось вопроизведение
    */
   const preparationQueue = (id: number) => {
+    console.log('--- preparationQueue ---');
+    
     const index = $store.state.yandexMusic
       .playlist
       .tracks
@@ -140,6 +148,9 @@ export function usePlayer() {
           data: item.track
         } as Track)
       })
+
+    // Устанавливаем информацию о плейлисте в данные о очереди
+    $store.dispatch('player/setQueueData', $store.state.yandexMusic.playlist)
   }
 
   /**
@@ -192,7 +203,7 @@ export function usePlayer() {
       
       // Если до конца трека осталось меньше 30 сек., то предзагружаем буффер 
       // для следующего трека, если он есть
-      if (difference <= 30 && $store.state.player.queue[0] && !nextBufferIsLoading) {
+      if (difference <= 30 && $store.state.player.queue.list[0] && !nextBufferIsLoading) {
         nextBufferIsLoading = true;
 
         // Подготовка следующего трека
@@ -209,7 +220,7 @@ export function usePlayer() {
    */
   const fetchNextTrack = () => {
     // Следующий трек
-    const nextTrack = $store.state.player.queue[0];
+    const nextTrack = $store.state.player.queue.list[0];
 
     if (!nextTrack) return
 
@@ -341,6 +352,7 @@ export function usePlayer() {
 
     playerStatus,
     playback,
+    playlist,
 
     pausePlayback,
     resumePlayback,

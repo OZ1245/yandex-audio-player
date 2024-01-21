@@ -52,3 +52,8 @@ export interface Player {
   playlist: BufferSource[];
   nextTime: number;
 }
+
+export interface Queue {
+  data: YandexMusicPlaylist | null,
+  list: Track[]
+}

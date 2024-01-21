@@ -4,12 +4,14 @@ import {
   TrackDownloadInfo, 
   TrackBuffer,
   TrackData,
+  Queue,
+  YandexMusicPlaylist
 } from "@/@types";
 import { GetterTree, MutationTree, ActionTree } from "vuex";
 
 interface State {
   status: PlayerStatus;
-  queue: Track[];
+  queue: Queue;
   playback: Track;
 }
 
@@ -21,7 +23,10 @@ export default {
       buffer: null,
     },
     status: "stopped",
-    queue: [],
+    queue: {
+      data: null,
+      list: []
+    },
   },
   getters: <GetterTree<State, any>>{},
   mutations: <MutationTree<State>>{
@@ -50,22 +55,29 @@ export default {
       state,
       { data, queueIndex }: { data: TrackDownloadInfo[]; queueIndex: number }
     ) {
-      state.queue[queueIndex].downloadInfo = data;
+      state.queue.list[queueIndex].downloadInfo = data;
     },
     SET_TRACK_BUFFER(
       state,
       { data, queueIndex }: { data: TrackBuffer; queueIndex: number }
     ) {
-      state.queue[queueIndex].buffer = data;
+      state.queue.list[queueIndex].buffer = data;
     },
     ADD_TRACK_TO_QUEUE(state, data) {
-      state.queue = [...state.queue, data];
+      state.queue.list = [...state.queue.list, data];
     },
     REMOVE_TRACK_FROM_QUEUE(state, index) {
-      state.queue.splice(index, 1);
+      state.queue.list.splice(index, 1);
     },
     REMOVE_TRACKS_FROM_QUEUE(state) {
-      state.queue = []
+      state.queue.list = []
+    },
+
+    SET_QUEUE_DATA(state, data) {
+      state.queue.data = data
+    },
+    REMOVE_QUEUE_DATA(state) {
+      state.queue.data = null
     }
   },
   actions: <ActionTree<State, any>>{
@@ -112,12 +124,28 @@ export default {
     },
     addTrackToQueue({ commit }, data: Track) {
       commit("ADD_TRACK_TO_QUEUE", data);
+      commit('REMOVE_QUEUE_DATA')
     },
     removeTrackFromQueue({ commit }, index: number) {
       commit("REMOVE_TRACK_FROM_QUEUE", index);
+      commit('REMOVE_QUEUE_DATA')
     },
     removeAllTracksFromQueue({commit}) {
       commit('REMOVE_TRACKS_FROM_QUEUE')
+      commit('REMOVE_QUEUE_DATA')
+    },
+
+    /**
+     * Устанавливает информацию о проигрываемом плейлисте 
+     * (если играет плейлист конечно)
+     * Если произошла модификация очереди, то она уже не будет являться 
+     * плейлистом Ямы
+     * 
+     * @param store 
+     * @param {YandexMusicPlaylist} data Информация о плейлисте
+     */
+    setQueueData({ commit }, data: YandexMusicPlaylist) {
+      commit('SET_QUEUE_DATA', data)
     }
   },
 };

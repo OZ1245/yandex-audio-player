@@ -31,11 +31,17 @@ import PlaylistsList from "@/components/collection/PlylistsList.vue";
 import { ref } from 'vue'
 import { useYandexMusic } from '@/composables/yandexMusic'
 
+// Composables
+
 const { fetchPlaylists } = useYandexMusic()
+
+// Data
 
 const isLoading = ref<LoadingState>(true)
 const playlists = ref<YandexMusicPlaylist[]>([])
 const showPlaylist = ref<CollectionState>(true)
+
+// Methods
 
 fetchPlaylists()
   .then((result: YandexMusicPlaylist[] | undefined): void => {

@@ -29,8 +29,25 @@
             <span>Owner:</span> {{ playlist?.owner.name }}
           </li>
           <li class="playlist-info__data-item">
+            <template v-if="currentPlaylist?.kind === playlist?.kind">
+              <button
+                v-if="playerStatus === 'playing'"
+                type="button"
+                class="playlist-info__button"
+                @click="onPausePlaylist()"
+              >Pause</button>
+              <button
+                v-if="playerStatus === 'paused'"
+                type="button"
+                class="playlist-info__button"
+                @click="onResumePlaylist()"
+              >Play</button>
+            </template>
+
             <button
+              v-else
               type="button"
+              class="playlist-info__button"
               @click="onPlayPlaylist()"
             >Play</button>
           </li>
@@ -47,13 +64,15 @@
 
 <script lang="ts" setup>
 import './style.scss'
-import SubView from '@/components/SubView/SubView.vue'
-import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
-import { YandexMusicTrack, YandexMusicPlaylist } from '@/@types'
+import { YandexMusicPlaylist, PlayerStatus } from '@/@types'
 import { useYandexMusic } from '@/composables/yandexMusic';
 import { computed, inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUtils } from '@/composables/utils';
+import { usePlayer } from '@/composables/player';
+
+import SubView from '@/components/SubView/SubView.vue'
+import YmpPlaylist from '@/components/common/YmpPlaylist/YmpPlaylist.vue'
 
 const dayjs: any = inject('dayjs')
 
@@ -61,8 +80,8 @@ const dayjs: any = inject('dayjs')
 
 const { converDurationToTime } = useUtils()
 const { params: routeParams } = useRoute()
-const { fetchPlaylistById, getCover } = useYandexMusic()
-// const $player: any = inject('$player')
+const $yandexMusic = useYandexMusic()
+const $player = usePlayer()
 const $bus: any = inject('bus')
 
 // Variables
@@ -81,6 +100,8 @@ const playlistCreated = computed((): string => (
 const playlistDuration = computed((): string => {
   return converDurationToTime(playlist.value?.durationMs || 0)
 })
+const currentPlaylist = computed((): YandexMusicPlaylist | null => $player.playlist.value)
+const playerStatus = computed((): PlayerStatus => $player.playerStatus.value)
 
 // Methods
 
@@ -88,20 +109,31 @@ const onPlayPlaylist = () => {
   $bus.emit('player:startPlayback', playlist.value?.tracks[0].track)
 }
 
+const onPausePlaylist = () => {
+  $bus.emit('player:pausePlayback')
+}
+
+const onResumePlaylist = () => {
+  $bus.emit('player:resumePlayback')
+}
+
 // Hooks
 
-fetchPlaylistById(playlistKind.value)
+$yandexMusic
+  .fetchPlaylistById(playlistKind.value)
   .then((result: YandexMusicPlaylist | undefined) => {
     if (result) {
       playlist.value = result
       playlistTitle.value = result.title
 
       if (result.cover) {
-        getCover(result.cover).then(result => {
-          if (!result) return
+        $yandexMusic
+          .getCover(result.cover)
+          .then(result => {
+            if (!result) return
 
-          playlistCover.value = result
-        })
+            playlistCover.value = result
+          })
       }
     }
   })
