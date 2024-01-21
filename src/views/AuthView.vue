@@ -40,24 +40,6 @@ import { inject, ref } from 'vue'
 // const $router = useRouter()
 const $yandexMusic: any = inject('$yandexMusic')
 
-// const username = ref<string>('')
-// const password = ref<string>('')
-// const token = ref<string>('')
-
-// const onLogin = async () => {
-//   if (token.value?.length) {
-//     await yandexMusic.authByToken(token.value)
-//       .then(() => {
-//         $router
-//           .push({ name: 'Home' })
-//           .then(() => $router.go())
-//       })
-//   } else {
-//     await yandexMusic.auth(username.value, password.value)
-//   }
-// }
-
-// console.log('client:', yandexMusic.client)
 window.YaAuthSuggest.init(
   {
     client_id: process.env.VUE_APP_CLIENT_ID,

@@ -8,14 +8,9 @@ export default {
       audioContext.value = new AudioContext();
     };
 
-    const closeAudioContext = () => {
-      console.log('---closeAudioContext---');
-      
+    const closeAudioContext = () => {      
       audioContext.value?.close();
       audioContext.value = null
-
-      console.log('audioContext.value:', audioContext.value);
-      
     };
 
     const suspenAudioContext = () => {

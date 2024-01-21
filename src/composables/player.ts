@@ -40,14 +40,9 @@ export function usePlayer() {
     audioContext.value = new AudioContext();
   };
 
-  const closeAudioContext = () => {
-    console.log('---closeAudioContext---');
-    
+  const closeAudioContext = () => { 
     audioContext.value?.close();
     audioContext.value = null
-
-    console.log('audioContext.value:', audioContext.value);
-    
   };
 
   const suspenAudioContext = () => {
@@ -63,10 +58,7 @@ export function usePlayer() {
    * Начало проигрывания
    * @param {YandexMusicTrack} track Трек, с которого нужно начать проигрывание
    */
-  const startPlayback = (track: YandexMusicTrack) => {
-    console.log('---startPlayback---');
-    console.log('track:', track);
-    
+  const startPlayback = (track: YandexMusicTrack) => {    
     // Подготовка к воспроизведению
     // Останавливаем воспроизведение
     stopPlayback()
@@ -92,10 +84,6 @@ export function usePlayer() {
   const preparationPlayback = async (
     track: Track
   ): Promise<AudioBuffer | undefined> => {
-    console.log('--- preparationPlayback ---');
-    console.log('$yandexMusic:', $yandexMusic);
-    
-
     if (!track.data) return
 
     // Создаем новый контекст
@@ -115,15 +103,10 @@ export function usePlayer() {
     return await $yandexMusic
       .fetchDownloadInfo(track.data.id, true)
       .then(async (result: any) => {
-        console.log('playback.value:', playback.value);
-        console.log('result:', result);
-        
         if (!result) return
 
         // Получаем ссылку на загрузку
-        const url = getDownloadInfoUrl(playback.value);
-        console.log('getDownloadInfoUrl url:', url);
-        
+        const url = getDownloadInfoUrl(playback.value); 
 
         // Получаем буффер по ссылке
         return await getBuffer(url)
@@ -166,7 +149,6 @@ export function usePlayer() {
    * @param {AudioBuffer} buffer 
    */
   const playTrack = (buffer: AudioBuffer): void => {
-    console.log('---playTrack---');
     if (!audioContext.value) return
     
     // Сохраняем буффер в объект для дальнейшего использования
@@ -263,10 +245,6 @@ export function usePlayer() {
    * @returns {string} Ссылка на получение буффера
    */
   const getDownloadInfoUrl = (track: Track): string => {
-    console.log('--- getDownloadInfoUrl ---');
-    console.log('track:', track);
-    
-    
     // По-убывающей, сначала самый быстрый битрейд
     return (
       track.downloadInfo?.find(
@@ -284,16 +262,10 @@ export function usePlayer() {
    * @returns {AudioBuffer} Буффер трека
    */
   const getBuffer = async (url: string): Promise<AudioBuffer | null> => {
-    console.log('--- getBuffer ---');
-    console.log('url:', url);
-    
-    
     return await $yandexMusic
       .fetchStream(url)
       // .then(async ({ data }: AxiosResponse<ArrayBuffer>) => {
       .then(async ({ data }: any) => {
-        console.log('data:', data);
-        
         // Полученный массив медиа-данных декодируем в буффер и отдаем его
         return await audioContext.value
           ?.decodeAudioData(data)
@@ -329,8 +301,6 @@ export function usePlayer() {
    * Остановить воспроизведение
    */
   const stopPlayback = () => {
-    console.log('---stopPlayback---');
-
     // Закрываем контекст
     closeAudioContext()
 
@@ -352,11 +322,9 @@ export function usePlayer() {
   const endPlaybackHandler = () => {
     // Получаем следующий трек
     const nextTrack = $store.state.player.queue[0]
-    console.log('nextTrack:', nextTrack);
     
     // Останавливаем проигрывание
     stopPlayback()
-    console.log('nextTrack:', nextTrack);
     nextBufferIsLoading = false
 
     // Если следующий трек есть, то подготавливаем его и воспроизводим
@@ -364,33 +332,6 @@ export function usePlayer() {
       startPlayback(nextTrack.data)
     }
   }
-
-  // ---------------------------------------------------------------------------
-  // const fetchDownloadInfo = async (
-  //   trackId: number | string,
-  //   current = false
-  // ): Promise<TrackDownloadInfo[] | []> => {
-  //   console.log('---fetchDownloadInfo---');
-    
-  //   console.log('$yandexMusicClient:', $yandexMusicClient);
-  //   if (!$yandexMusicClient) return []
-
-    
-  //   return await $yandexMusicClient.tracks
-  //     .getDownloadInfo(trackId)
-  //     .then(
-  //       ({ result }: Response<TrackDownloadInfo[]>) => {
-  //         console.log('result:', result);
-          
-  //         if (current) {
-  //           $store.dispatch("player/setPlaybackInfo", result);
-  //         }
-
-  //         return result;
-  //       }
-  //     );
-  // };
-  // ---------------------------------------------------------------------------
 
   return {
     startPlayback,

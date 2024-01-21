@@ -33,13 +33,7 @@ export default {
       state.playback.data = data;
     },
     SET_PLAYBACK_DOWNLOAD_INFO(state, data) {
-      console.log('--- SET_PLAYBACK_DOWNLOAD_INFO mutation ---');
-      console.log('data:', data);
-      
       state.playback.downloadInfo = data;
-
-      console.log('state.playback.downloadInfo:', state.playback.downloadInfo);
-      
     },
     SET_PLAYBACK_BUFFER(state, data) {
       state.playback.buffer = data;
@@ -98,8 +92,6 @@ export default {
 
         return;
       }
-      console.log('data:', data);
-      
 
       commit("SET_PLAYBACK_DOWNLOAD_INFO", data);
     },

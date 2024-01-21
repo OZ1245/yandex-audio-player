@@ -85,15 +85,10 @@ const playlistDuration = computed((): string => {
 // Methods
 
 const onPlayPlaylist = () => {
-  console.log('check');
-
-  // $player.startPlayback(playlist.value?.tracks[0].track as YandexMusicTrack)
   $bus.emit('player:startPlayback', playlist.value?.tracks[0].track)
 }
 
 // Hooks
-
-console.log('playlistKind.value:', playlistKind.value);
 
 fetchPlaylistById(playlistKind.value)
   .then((result: YandexMusicPlaylist | undefined) => {

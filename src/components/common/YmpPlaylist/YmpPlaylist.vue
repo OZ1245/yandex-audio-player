@@ -101,9 +101,6 @@ const getTrackDuration = (track: TrackData): string => {
  * @param {YandexMusicTrack} track Объект информации о треке
  */
 const onPlayTrack = (track: YandexMusicTrack) => {
-  // console.log('$player:', $player);
-
-  // $player.startPlayback(track)
   $bus.emit('player:startPlayback', track)
 }
 

@@ -15,8 +15,6 @@ const token = localStorage.getItem('ymToken')
 // const clientHeaders = ref<Record<PropertyKey, string>>()
 
 const initClient = (token: any) => {
-  console.log('---initClient---');
-  
   const clientHeaders = {
     Authorization: `OAuth ${token}`,
     "Accept-Language": "ru",
@@ -102,8 +100,7 @@ export default {
   install(app: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const client = initClient(token)
-    console.log('client:', client);
-
+    
     Object.defineProperty(
       app.config.globalProperties,
       '$yandexMusicClient',
